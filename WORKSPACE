@@ -1,4 +1,19 @@
 
+rules_scala_version="63eab9f4d80612e918ba954211f377cc83d27a07" # update this as needed
+
+http_archive(
+    name = "io_bazel_rules_scala",
+    url = "https://github.com/bazelbuild/rules_scala/archive/%s.zip" % rules_scala_version,
+    type = "zip",
+    strip_prefix= "rules_scala-%s" % rules_scala_version
+)
+
+load("@io_bazel_rules_scala//scala:scala.bzl", "scala_repositories")
+scala_repositories()
+
+load("@io_bazel_rules_scala//scala:toolchains.bzl", "scala_register_toolchains")
+scala_register_toolchains()
+
 maven_jar(
     name = "com_fasterxml_jackson_core_jackson_core",
     artifact = "com.fasterxml.jackson.core:jackson-core:2.9.6",
