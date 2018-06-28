@@ -14,6 +14,21 @@ scala_repositories()
 load("@io_bazel_rules_scala//scala:toolchains.bzl", "scala_register_toolchains")
 scala_register_toolchains()
 
+new_http_archive(
+    name ="com_exasol_jdbc",
+    urls = ["https://www.exasol.com/support/secure/attachment/60963/EXASOL_JDBC-6.0.8.tar.gz"],
+    strip_prefix = "EXASOL_JDBC-6.0.8",
+    build_file_content = """
+java_import(
+    name = "jar",
+    jars = [
+        "exajdbc.jar",
+    ],
+    visibility = ["//visibility:public"],
+)
+"""
+)
+
 maven_jar(
     name = "com_fasterxml_jackson_core_jackson_core",
     artifact = "com.fasterxml.jackson.core:jackson-core:2.9.6",
@@ -40,6 +55,18 @@ maven_jar(
 maven_jar(
     name = "org_apache_kafka_kafka_clients",
     artifact = "org.apache.kafka:kafka-clients:1.1.0",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "org_easytesting_fest_assert",
+    artifact = "org.easytesting:fest-assert:1.4",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "org_easytesting_fest_util",
+    artifact = "org.easytesting:fest-util:1.2.5",
     server = "maven_uk_server",
 )
 
