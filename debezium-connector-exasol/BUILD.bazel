@@ -3,7 +3,15 @@ load("@io_bazel_rules_scala//scala:scala.bzl", "scala_library", "scala_test")
 scala_library(
     name = "connector",
     srcs = [
+        "ExasolConnectorTask.scala",
         "SourceConnector.scala",
+        "SourceConnectorConfig.scala",
+    ],
+    deps = [
+        "@com_exasol_jdbc//:jar",
+        "@org_apache_kafka_connect_api//jar",
+        "@org_apache_kafka_kafka_clients//jar",
+        "//debezium-core",
     ],
 )
 
@@ -11,5 +19,8 @@ scala_test(
     name = "connector_test",
     srcs = [
         "SourceConnectorTest.scala",
+    ],
+    deps = [
+        ":connector",
     ],
 )
