@@ -1,0 +1,26 @@
+load("@io_bazel_rules_scala//scala:scala.bzl", "scala_library", "scala_test")
+
+scala_library(
+    name = "connector",
+    srcs = [
+        "TeradataConnector.scala",
+        "TeratadataConnectorConfig.scala",
+    ],
+    deps = [
+        "@com_exasol_jdbc//:jar",
+        "@org_apache_kafka_connect_api//jar",
+        "@org_apache_kafka_kafka_clients//jar",
+        "//debezium-core",
+        "@org_scala_lang_modules_scala_java8_compat_2_12//jar",
+    ],
+)
+
+scala_test(
+    name = "connector_test",
+    srcs = [
+        "SourceConnectorTest.scala",
+    ],
+    deps = [
+        ":connector",
+    ],
+)
