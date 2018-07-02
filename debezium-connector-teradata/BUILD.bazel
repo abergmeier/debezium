@@ -11,7 +11,6 @@ scala_library(
         "@org_apache_kafka_connect_api//jar",
         "@org_apache_kafka_kafka_clients//jar",
         "//debezium-core",
-        "@org_scala_lang_modules_scala_java8_compat_2_12//jar",
     ],
 )
 
