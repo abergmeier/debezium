@@ -35,6 +35,18 @@ maven_jar(
     server = "maven_uk_server",
 )
 
+maven_jar(
+    name = "com_typesafe_akka_akka_actor",
+    artifact = "com.typesafe.akka:akka-actor_2.11:2.5.13",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "com_typesafe_config",
+    artifact = "com.typesafe:config:1.3.3",
+    server = "maven_uk_server",
+)
+
 maven_server(
     name = "maven_uk_server",
     url = "http://uk.maven.org/maven2",

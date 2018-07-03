@@ -29,9 +29,23 @@ scala_library(
 )
 
 scala_library(
+    name = "executesql",
+    srcs = [
+        "ExecuteSQL.scala",
+    ],
+)
+
+scala_library(
     name = "module",
     srcs = [
         "Module.scala",
+    ],
+)
+
+scala_library(
+    name = "row",
+    srcs = [
+        "Row.scala",
     ],
 )
 
@@ -74,12 +88,28 @@ scala_library(
     ],
 )
 
-scala_test(
-    name = "connector_test",
+scala_library(
+    name = "teradataactor",
     srcs = [
-        "SourceConnectorTest.scala",
+        "TeradataActor.scala",
     ],
     deps = [
-        ":debezium-connector-teradata",
+        "@com_typesafe_akka_akka_actor//jar",
+        ":executesql",
+        ":row",
+    ],
+)
+
+scala_test(
+    name = "teradataactor_test",
+    srcs = [
+        "TeradataActorTest.scala",
+    ],
+    deps = [
+        "@com_typesafe_akka_akka_actor//jar",
+        "@com_typesafe_config//jar",
+        ":executesql",
+        ":row",
+        ":teradataactor",
     ],
 )
