@@ -18,85 +18,7 @@ import io.debezium.config.Field
 import io.debezium.jdbc.JdbcConfiguration
 import io.debezium.jdbc.JdbcValueConverters.DecimalMode
 import io.debezium.jdbc.TemporalPrecisionMode
-
-/**
- * The set of predefined SecureConnectionMode options or aliases.
- */
-object SecureConnectionMode {
-
-    /**
-     * Establish an unencrypted connection
-     *
-     * see the {@code sslmode} Postgres JDBC driver option
-     */
-    val DISABLED = new SecureConnectionMode("disable")
-
-        /**
-         * Establish a secure connection if the server supports secure connections.
-         * The connection attempt fails if a secure connection cannot be established
-         *
-         * see the {@code sslmode} Postgres JDBC driver option
-         */
-    val REQUIRED = new SecureConnectionMode("require")
-
-        /**
-         * Like REQUIRED, but additionally verify the server TLS certificate against the configured Certificate Authority
-         * (CA) certificates. The connection attempt fails if no valid matching CA certificates are found.
-         *
-         * see the {@code sslmode} Postgres JDBC driver option
-         */
-    val VERIFY_CA = new SecureConnectionMode("verify-ca")
-
-        /**
-         * Like VERIFY_CA, but additionally verify that the server certificate matches the host to which the connection is
-         * attempted.
-         *
-         * see the {@code sslmode} Postgres JDBC driver option
-         */
-    val VERIFY_FULL = new SecureConnectionMode("verify-full")
-
-    def values(): Array[SecureConnectionMode] = {
-        return Array(DISABLED, REQUIRED, VERIFY_CA, VERIFY_FULL)
-    }
-
-    /**
-     * Determine if the supplied value is one of the predefined options.
-     *
-     * @param value the configuration property value; may not be null
-     * @return the matching option, or null if no match is found
-     */
-    def parse(value: String): Option[SecureConnectionMode] = {
-        if (value == None)
-            return Some(REQUIRED)
-        val trimmedValue = value.trim()
-        for (option <- values()) {
-            if (option.getValue().equalsIgnoreCase(trimmedValue))
-                return Some(option)
-        }
-        None
-    }
-
-    /**
-     * Determine if the supplied value is one of the predefined options.
-     *
-     * @param value the configuration property value; may not be null
-     * @param defaultValue the default value; may be null
-     * @return the matching option, or null if no match is found and the non-null default is invalid
-     */
-    def parse(value: String, defaultValue: String): Option[SecureConnectionMode] = {
-        var mode = parse(value)
-        if (mode == None && defaultValue != None)
-            mode = parse(defaultValue)
-        mode
-    }
-}
-
-class SecureConnectionMode(value: String) extends EnumeratedValue {
-
-    override def getValue(): String = {
-        value
-    }
-}
+import io.debezium.connector.teradata.SecureConnectionMode
 
 object TeradataConnectorConfig {
     val DATABASE_CONFIG_PREFIX = "database."
@@ -125,7 +47,7 @@ object TeradataConnectorConfig {
         .withDefault(DEFAULT_PORT)
         .withImportance(Importance.HIGH)
         .withValidation(toSam(Field.isInteger _))
-        .withDescription("Port of the Postgres database server.")
+        .withDescription("Port of the Teradata database server.")
 
     val USER = Field.create(DATABASE_CONFIG_PREFIX + JdbcConfiguration.USER)
         .withDisplayName("User")
@@ -133,14 +55,25 @@ object TeradataConnectorConfig {
         .withWidth(Width.SHORT)
         .withImportance(Importance.HIGH)
         .withValidation(toSam(Field.isRequired _))
-        .withDescription("Name of the Postgres database user to be used when connecting to the database.")
+        .withDescription("Name of the Teradata database user to be used when connecting to the database.")
 
     val PASSWORD = Field.create(DATABASE_CONFIG_PREFIX + JdbcConfiguration.PASSWORD)
         .withDisplayName("Password")
         .withType(Type.PASSWORD)
         .withWidth(Width.SHORT)
         .withImportance(Importance.HIGH)
-        .withDescription("Password of the Postgres database user to be used when connecting to the database.")
+        .withDescription("Password of the Teradata database user to be used when connecting to the database.")
+
+
+    val SERVER_NAME = Field.create(DATABASE_CONFIG_PREFIX + "server.name")
+        .withDisplayName("Namespace")
+        .withType(Type.STRING)
+        .withWidth(Width.MEDIUM)
+        .withImportance(Importance.HIGH)
+        .withDescription("Unique name that identifies the database server and all recorded offsets, and"
+             + "that is used as a prefix for all schemas and topics. "
+             + "Each distinct Teradata installation should have a separate namespace and monitored by "
+             + "at most one Debezium connector. Defaults to 'host:port/database'");
 
     val DATABASE_NAME = Field.create(DATABASE_CONFIG_PREFIX + JdbcConfiguration.DATABASE)
         .withDisplayName("Database")
@@ -219,7 +152,7 @@ object TeradataConnectorConfig {
         .withType(Type.STRING)
         .withWidth(Width.LONG)
         .withImportance(Importance.MEDIUM)
-        .withValidation(toSam(PostgresConnectorConfig.validateSchemaBlacklist _))
+        .withValidation(toSam(TeradataConnectorConfig.validateSchemaBlacklist _))
         .withInvisibleRecommender()
         .withDescription("")
 
@@ -236,13 +169,13 @@ object TeradataConnectorConfig {
      */
     val ALL_FIELDS = Field.setOf(DATABASE_NAME, USER, PASSWORD, HOSTNAME, PORT,
         CommonConnectorConfig.POLL_INTERVAL_MS, SCHEMA_WHITELIST, SCHEMA_BLACKLIST,
-        SSL_MODE, SSL_CLIENT_CERT, SSL_CLIENT_KEY_PASSWORD, SSL_ROOT_CERT,
+        SERVER_NAME, SSL_MODE, SSL_CLIENT_CERT, SSL_CLIENT_KEY_PASSWORD, SSL_ROOT_CERT,
         SSL_CLIENT_KEY, SSL_SOCKET_FACTORY, STATUS_UPDATE_INTERVAL_MS)
 
 
     def configDef(): ConfigDef = {
         val config = new ConfigDef();
-        Field.group(config, "Teradata", DATABASE_NAME, HOSTNAME, PORT, USER,
+        Field.group(config, "Teradata", SERVER_NAME, DATABASE_NAME, HOSTNAME, PORT, USER,
                     PASSWORD, SSL_MODE, SSL_CLIENT_CERT, SSL_CLIENT_KEY_PASSWORD,
                     SSL_ROOT_CERT, SSL_CLIENT_KEY, SSL_SOCKET_FACTORY, 
                     STATUS_UPDATE_INTERVAL_MS);
@@ -251,22 +184,11 @@ object TeradataConnectorConfig {
         config;
     }
 
-    def validateSchemaBlacklist(config: Configuration, field: Field, problems: Field.ValidationOutput): int = {
+    def validateSchemaBlacklist(config: Configuration, field: Field, problems: Field.ValidationOutput): Int = {
         val whitelist = config.getString(SCHEMA_WHITELIST);
         val blacklist = config.getString(SCHEMA_BLACKLIST);
         if (whitelist != null && blacklist != null) {
             problems.accept(SCHEMA_BLACKLIST, blacklist, "Schema whitelist is already specified");
-            1
-        }
-        else
-            0
-    }
-
-    def validateTableBlacklist(config: Configuration, field: Field, problems: Field.ValidationOutput): int = {
-        val whitelist = config.getString(TABLE_WHITELIST);
-        val blacklist = config.getString(TABLE_BLACKLIST);
-        if (whitelist != null && blacklist != null) {
-            problems.accept(TABLE_BLACKLIST, blacklist, "Table whitelist is already specified");
             1
         }
         else
@@ -279,22 +201,18 @@ object TeradataConnectorConfig {
  *
  * @author Andreas Bergmeier
  */
-class TeradataConnectorConfig(config: Configuration) extends CommonConnectorConfig {
+class TeradataConnectorConfig(config: Configuration) extends CommonConnectorConfig(config, TeradataConnectorConfig.SERVER_NAME) {
 
-    def this(config: Configuration) = {
-        this(config, TeradataConnectorConfig.SERVER_NAME)
-    }
-
-    val serverName = config.getString(TeradataConnectorConfig.SERVER_NAME)
-    if (serverName == None) {
-        serverName = hostname() + ":" + port() + "/" + databaseName()
+    var _serverName = config.getString(TeradataConnectorConfig.SERVER_NAME)
+    if (_serverName == None) {
+        _serverName = hostname() + ":" + port() + "/" + databaseName()
     }
 
     def hostname(): String = {
         config.getString(TeradataConnectorConfig.HOSTNAME)
     }
 
-    def port(): int = {
+    def port(): Int = {
         config.getInteger(TeradataConnectorConfig.PORT)
     }
 
@@ -311,7 +229,7 @@ class TeradataConnectorConfig(config: Configuration) extends CommonConnectorConf
     }
 
     def serverName(): String = {
-        serverName
+        _serverName
     }
 
     def validate(): Map[String, ConfigValue] = {
