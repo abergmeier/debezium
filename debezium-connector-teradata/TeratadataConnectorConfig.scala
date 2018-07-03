@@ -19,7 +19,84 @@ import io.debezium.jdbc.JdbcConfiguration
 import io.debezium.jdbc.JdbcValueConverters.DecimalMode
 import io.debezium.jdbc.TemporalPrecisionMode
 
-import scala.compat.java8.FunctionConverters._
+/**
+ * The set of predefined SecureConnectionMode options or aliases.
+ */
+object SecureConnectionMode {
+
+    /**
+     * Establish an unencrypted connection
+     *
+     * see the {@code sslmode} Postgres JDBC driver option
+     */
+    val DISABLED = new SecureConnectionMode("disable")
+
+        /**
+         * Establish a secure connection if the server supports secure connections.
+         * The connection attempt fails if a secure connection cannot be established
+         *
+         * see the {@code sslmode} Postgres JDBC driver option
+         */
+    val REQUIRED = new SecureConnectionMode("require")
+
+        /**
+         * Like REQUIRED, but additionally verify the server TLS certificate against the configured Certificate Authority
+         * (CA) certificates. The connection attempt fails if no valid matching CA certificates are found.
+         *
+         * see the {@code sslmode} Postgres JDBC driver option
+         */
+    val VERIFY_CA = new SecureConnectionMode("verify-ca")
+
+        /**
+         * Like VERIFY_CA, but additionally verify that the server certificate matches the host to which the connection is
+         * attempted.
+         *
+         * see the {@code sslmode} Postgres JDBC driver option
+         */
+    val VERIFY_FULL = new SecureConnectionMode("verify-full")
+
+    def values(): Array[SecureConnectionMode] = {
+        return Array(DISABLED, REQUIRED, VERIFY_CA, VERIFY_FULL)
+    }
+
+    /**
+     * Determine if the supplied value is one of the predefined options.
+     *
+     * @param value the configuration property value; may not be null
+     * @return the matching option, or null if no match is found
+     */
+    def parse(value: String): Option[SecureConnectionMode] = {
+        if (value == None)
+            return Some(REQUIRED)
+        val trimmedValue = value.trim()
+        for (option <- values()) {
+            if (option.getValue().equalsIgnoreCase(trimmedValue))
+                return Some(option)
+        }
+        None
+    }
+
+    /**
+     * Determine if the supplied value is one of the predefined options.
+     *
+     * @param value the configuration property value; may not be null
+     * @param defaultValue the default value; may be null
+     * @return the matching option, or null if no match is found and the non-null default is invalid
+     */
+    def parse(value: String, defaultValue: String): Option[SecureConnectionMode] = {
+        var mode = parse(value)
+        if (mode == None && defaultValue != None)
+            mode = parse(defaultValue)
+        mode
+    }
+}
+
+class SecureConnectionMode(value: String) extends EnumeratedValue {
+
+    override def getValue(): String = {
+        value
+    }
+}
 
 object TeradataConnectorConfig {
     val DATABASE_CONFIG_PREFIX = "database."
@@ -27,7 +104,7 @@ object TeradataConnectorConfig {
 
     val TABLE_WHITELIST_NAME = "table.whitelist"
 
-    def handler[Valid](h: Valid) =
+    def toSam(h: (Configuration, Field, Field.ValidationOutput) => Int): Field.Validator =
         new Field.Validator {
             override def validate(config: Configuration, field: Field, problems: Field.ValidationOutput): Int =
                 h(config, field, problems)
@@ -38,7 +115,7 @@ object TeradataConnectorConfig {
         .withType(Type.STRING)
         .withWidth(Width.MEDIUM)
         .withImportance(Importance.HIGH)
-        .withValidation(handler(Field.isRequired))
+        .withValidation(toSam(Field.isRequired _))
         .withDescription("Resolvable hostname or IP address of the Teradata database server.")
 
     val PORT = Field.create(DATABASE_CONFIG_PREFIX + JdbcConfiguration.PORT)
@@ -47,7 +124,7 @@ object TeradataConnectorConfig {
         .withWidth(Width.SHORT)
         .withDefault(DEFAULT_PORT)
         .withImportance(Importance.HIGH)
-        .withValidation(Field::isInteger)
+        .withValidation(toSam(Field.isInteger _))
         .withDescription("Port of the Postgres database server.")
 
     val USER = Field.create(DATABASE_CONFIG_PREFIX + JdbcConfiguration.USER)
@@ -55,7 +132,7 @@ object TeradataConnectorConfig {
         .withType(Type.STRING)
         .withWidth(Width.SHORT)
         .withImportance(Importance.HIGH)
-        .withValidation(Field::isRequired)
+        .withValidation(toSam(Field.isRequired _))
         .withDescription("Name of the Postgres database user to be used when connecting to the database.")
 
     val PASSWORD = Field.create(DATABASE_CONFIG_PREFIX + JdbcConfiguration.PASSWORD)
@@ -70,7 +147,7 @@ object TeradataConnectorConfig {
         .withType(Type.STRING)
         .withWidth(Width.MEDIUM)
         .withImportance(Importance.HIGH)
-        .withValidation(Field::isRequired)
+        .withValidation(toSam(Field.isRequired _))
         .withDescription("The name of the database the connector should be monitoring")
 
 
@@ -142,7 +219,7 @@ object TeradataConnectorConfig {
         .withType(Type.STRING)
         .withWidth(Width.LONG)
         .withImportance(Importance.MEDIUM)
-        .withValidation(PostgresConnectorConfig::validateSchemaBlacklist)
+        .withValidation(toSam(PostgresConnectorConfig.validateSchemaBlacklist _))
         .withInvisibleRecommender()
         .withDescription("")
 
@@ -152,7 +229,7 @@ object TeradataConnectorConfig {
         .withWidth(Width.SHORT)
         .withImportance(Importance.MEDIUM)
         .withDescription("Frequency in milliseconds for sending replication connection status updates to the server. Defaults to 10 seconds (10000 ms).")
-        .withValidation(Field::isPositiveInteger)
+        .withValidation(toSam(Field.isPositiveInteger _))
 
     /**
      * The set of {@link Field}s defined as part of this configuration.
