@@ -1,22 +1,37 @@
 load("@io_bazel_rules_scala//scala:scala.bzl", "scala_library", "scala_test")
 
-alias(
-    name = "debezium-connector-teradata",
-    actual = ":connector",
-)
-
 scala_library(
-    name = "connector",
+    name = "config",
     srcs = [
-        "TeradataConnector.scala",
         "TeratadataConnectorConfig.scala",
     ],
     deps = [
-        "@com_exasol_jdbc//:jar",
         "@org_apache_kafka_connect_api//jar",
         "@org_apache_kafka_kafka_clients//jar",
         "//debezium-core",
         ":secureconnectionmode",
+    ],
+)
+
+scala_library(
+    name = "debezium-connector-teradata",
+    srcs = [
+        "TeradataConnector.scala",
+    ],
+    deps = [
+        "@org_apache_kafka_connect_api//jar",
+        "@org_apache_kafka_kafka_clients//jar",
+        "@com_exasol_jdbc//:jar",
+        "//debezium-core",
+        ":config",
+        ":task",
+    ],
+)
+
+scala_library(
+    name = "module",
+    srcs = [
+        "Module.scala",
     ],
 )
 
@@ -30,12 +45,41 @@ java_library(
     ],
 )
 
+scala_library(
+    name = "sourceinfo",
+    srcs = [
+        "SourceInfo.scala",
+    ],
+    deps = [
+        "@org_apache_kafka_connect_api//jar",
+        "@org_apache_kafka_kafka_clients//jar",
+        "//debezium-core",
+        ":module",
+    ]
+)
+
+scala_library(
+    name = "task",
+    srcs = [
+        "TeradataConnectorTask.scala",
+    ],
+    deps = [
+        "@org_apache_kafka_connect_api//jar",
+        "@org_apache_kafka_kafka_clients//jar",
+        "@org_slf4j_slf4j_api//jar",
+        "//debezium-core",
+        ":config",
+        ":module",
+        ":sourceinfo",
+    ],
+)
+
 scala_test(
     name = "connector_test",
     srcs = [
         "SourceConnectorTest.scala",
     ],
     deps = [
-        ":connector",
+        ":debezium-connector-teradata",
     ],
 )
