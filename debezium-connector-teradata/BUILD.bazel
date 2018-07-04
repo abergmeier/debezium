@@ -14,6 +14,30 @@ scala_library(
 )
 
 scala_library(
+    name = "dataactor",
+    srcs = [
+        "DataActor.scala",
+    ],
+    deps = [
+        "@com_typesafe_akka_akka_actor//jar",
+        ":row",
+    ],
+)
+
+scala_test(
+    name = "dataactor_test",
+    srcs = [
+        "DataActorTest.scala",
+    ],
+    deps = [
+        "@com_typesafe_akka_akka_actor//jar",
+        "@com_typesafe_config//jar",
+        ":dataactor",
+        ":row",
+    ],
+)
+
+scala_library(
     name = "debezium-connector-teradata",
     srcs = [
         "TeradataConnector.scala",
