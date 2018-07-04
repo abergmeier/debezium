@@ -6,10 +6,10 @@ scala_library(
         "TeratadataConnectorConfig.scala",
     ],
     deps = [
+        ":secureconnectionmode",
+        "//debezium-core",
         "@org_apache_kafka_connect_api//jar",
         "@org_apache_kafka_kafka_clients//jar",
-        "//debezium-core",
-        ":secureconnectionmode",
     ],
 )
 
@@ -43,12 +43,12 @@ scala_library(
         "TeradataConnector.scala",
     ],
     deps = [
-        "@org_apache_kafka_connect_api//jar",
-        "@org_apache_kafka_kafka_clients//jar",
-        "@com_exasol_jdbc//:jar",
-        "//debezium-core",
         ":config",
         ":task",
+        "//debezium-core",
+        "@com_exasol_jdbc//:jar",
+        "@org_apache_kafka_connect_api//jar",
+        "@org_apache_kafka_kafka_clients//jar",
     ],
 )
 
@@ -126,11 +126,11 @@ scala_library(
         "SourceInfo.scala",
     ],
     deps = [
+        ":module",
+        "//debezium-core",
         "@org_apache_kafka_connect_api//jar",
         "@org_apache_kafka_kafka_clients//jar",
-        "//debezium-core",
-        ":module",
-    ]
+    ],
 )
 
 scala_library(
@@ -139,13 +139,13 @@ scala_library(
         "TeradataConnectorTask.scala",
     ],
     deps = [
-        "@org_apache_kafka_connect_api//jar",
-        "@org_apache_kafka_kafka_clients//jar",
-        "@org_slf4j_slf4j_api//jar",
-        "//debezium-core",
         ":config",
         ":module",
         ":sourceinfo",
+        "//debezium-core",
+        "@org_apache_kafka_connect_api//jar",
+        "@org_apache_kafka_kafka_clients//jar",
+        "@org_slf4j_slf4j_api//jar",
     ],
 )
 
@@ -155,10 +155,20 @@ scala_library(
         "TeradataActor.scala",
     ],
     deps = [
-        "@com_typesafe_akka_akka_actor//jar",
         ":executesql",
         ":sqlstream",
         ":row",
+        "@com_typesafe_akka_akka_actor//jar",
+    ],
+)
+
+scala_library(
+    name = "teradataconnection",
+    srcs = [
+        "TeradataConnection.scala",
+    ],
+    deps = [
+        ":teradata-jdbc",
     ],
 )
 
@@ -168,11 +178,31 @@ scala_test(
         "TeradataActorTest.scala",
     ],
     deps = [
-        "@com_typesafe_akka_akka_actor//jar",
-        "@com_typesafe_config//jar",
         ":executesql",
         ":row",
         ":sqlstream",
         ":teradataactor",
+        "@com_typesafe_akka_akka_actor//jar",
+        "@com_typesafe_config//jar",
+    ],
+)
+
+java_import(
+    name = "teradata-jdbc",
+    jars = [
+        "tdgssconfig.jar",
+        "terajdbc4.jar",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+scala_test(
+    name = "teradataconnection_test",
+    srcs = [
+        "TeradataConnectionTest.scala",
+    ],
+    deps = [
+        ":teradata-jdbc",
+        ":teradataconnection",
     ],
 )
