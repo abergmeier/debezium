@@ -7,7 +7,7 @@ import akka.actor.ActorLogging
 
 import com.sun.rowset.CachedRowSetImpl
 
-import java.sql.CachedRowSet
+import javax.sql.rowset.CachedRowSet
 
 class TeradataActor extends Actor with ActorLogging {
 
@@ -17,21 +17,13 @@ class TeradataActor extends Actor with ActorLogging {
             val tc = new TeradataConnection
             tc.startConnection()
             val crs = new CachedRowSetImpl()
-            crs.setType(CachedRowSet.TYPE_FORWARD_ONLY)
-            crs.setFetchDirection(CachedRowSet.FETCH_FORWARD)
+            //crs.setType(CachedRowSet.TYPE_FORWARD_ONLY)
+            //crs.setFetchDirection(CachedRowSet.FETCH_FORWARD)
             crs.setCommand(sql)
-            crs.execute(tc)
+            crs.execute(tc.con)
+            crs.next()
             sender() ! SQLStream(crs)
             tc.close()
         }
     }
-
-    def handleResultInQuery(resultSet: ResultSet): String = {
-        var l: String = ""
-        while(resultSet.next()) {
-           l = resultSet.getString(1)
-        }
-        l
-    }
-
 }

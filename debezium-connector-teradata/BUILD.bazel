@@ -160,6 +160,7 @@ scala_library(
         ":sqlstream",
         ":teradataconnection",
         "@com_typesafe_akka_akka_actor//jar",
+        "@org_everit_osgi_bundles_javax_sql//jar",
     ],
 )
 

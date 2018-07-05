@@ -21,21 +21,24 @@ object TestActor {
 class TestActor(teradataActor: ActorRef) extends Actor with Matchers with ActorLogging{
     def receive = {
         case TestActor.Test => {
-            teradataActor ! ExecuteSQL("SELECT CURRENT_TIME")
+            teradataActor ! ExecuteSQL("SELECT TRIM(KTNR_NOA), CURRENT_TIMESTAMP FROM asis_ws_raas_tok_f2_view.v_invoicedetails ORDER BY TRIM(KTNR_NOA)")
         }
         case SQLStream(data) => {
-            log.info(data.getString(1))
+            data.getTimestamp(2) should not be None
+            data.getString(1) shouldBe "102099267"
+            data.next()
+            context.system.terminate()
         }
     }
 }
 
 class TeradataActorSpec extends FlatSpec with Matchers {
 
-    val system = ActorSystem("TestSystem")
-
     "A TeradataActor" should "answer with multiple rows" in {
+        val system = ActorSystem("TestSystem")
         val teradata = system.actorOf(Props[TeradataActor], "teradataActor")
-        val test = system.actorOf(Props(classOf[TestActor], teradata), "sinkActor")
+        val test = system.actorOf(Props(classOf[TestActor], teradata), "testActor")
         test ! TestActor.Test
+        Await.ready(system.whenTerminated, 5 seconds)
     }
 }

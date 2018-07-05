@@ -36,6 +36,12 @@ maven_jar(
 )
 
 maven_jar(
+    name = "org_everit_osgi_bundles_javax_sql",
+    artifact = "org.everit.osgi.bundles:org.everit.osgi.bundles.javax.sql:4.1.0",
+    server = "maven_uk_server",
+)
+
+maven_jar(
     name = "com_typesafe_akka_akka_actor",
     artifact = "com.typesafe.akka:akka-actor_2.11:2.5.13",
     server = "maven_uk_server",
