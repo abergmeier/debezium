@@ -19,8 +19,8 @@ scala_library(
         "DataActor.scala",
     ],
     deps = [
-        "@com_typesafe_akka_akka_actor//jar",
         ":row",
+        "@com_typesafe_akka_akka_actor//jar",
     ],
 )
 
@@ -30,10 +30,10 @@ scala_test(
         "DataActorTest.scala",
     ],
     deps = [
-        "@com_typesafe_akka_akka_actor//jar",
-        "@com_typesafe_config//jar",
         ":dataactor",
         ":row",
+        "@com_typesafe_akka_akka_actor//jar",
+        "@com_typesafe_config//jar",
     ],
 )
 
@@ -89,10 +89,10 @@ scala_library(
         "SnapshotActor.scala",
     ],
     deps = [
-        "@com_typesafe_akka_akka_actor//jar",
         ":executesql",
-        ":sqlstream",
         ":row",
+        ":sqlstream",
+        "@com_typesafe_akka_akka_actor//jar",
     ],
 )
 
@@ -102,11 +102,11 @@ scala_test(
         "SnapshotActorTest.scala",
     ],
     deps = [
+        ":executesql",
+        ":row",
+        ":snapshotactor",
         "@com_typesafe_akka_akka_actor//jar",
         "@com_typesafe_config//jar",
-        ":executesql",
-        ":snapshotactor",
-        ":row",
     ],
 )
 
@@ -156,8 +156,9 @@ scala_library(
     ],
     deps = [
         ":executesql",
-        ":sqlstream",
         ":row",
+        ":sqlstream",
+        ":teradataconnection",
         "@com_typesafe_akka_akka_actor//jar",
     ],
 )
