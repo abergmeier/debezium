@@ -169,6 +169,7 @@ scala_library(
     ],
     deps = [
         ":teradata-jdbc",
+        "@org_slf4j_slf4j_api//jar",
     ],
 )
 

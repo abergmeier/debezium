@@ -1,103 +1,129 @@
 package teradata
 
-import java.sql.{Connection, DriverManager, SQLException, Timestamp}
+import java.sql._
 import java.util.Properties
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import scala.collection.mutable
 
+case class KeySet(value: Set[String])
+case class InfoMap(value: mutable.Map[String,mutable.Map[String,Any]])
 
 class TeradataConnection {
 
-  def makeConnection(connectionString: String) = {
-    println("Start Progress")
-    var con: Connection = null
+  val logger = LoggerFactory.getLogger(classOf[TeradataConnection]);
+  var con: Connection = null
+
+
+  def startConnection(jdbcString: String, teradataUser: String, teradataPassword: String): Unit ={
+    logger.info("Start Connection")
     val driver = "com.teradata.jdbc.TeraDriver"
-    val connectionProps = new Properties
-  try{
+    try{
       Class.forName(driver)
-      con = DriverManager.getConnection(connectionString)
-    println("Connected to database")
-      println("Make Query")
-      val s = getKeysFromInvoiceDetails(con)
-      println(s)
-    con.close()
-    } catch {
+      this.con = DriverManager.getConnection(jdbcString, teradataUser, teradataPassword)
+      logger.info("Connection successful")
+    }catch {
       case cnfe: ClassNotFoundException =>
+        logger.error("Class could not be found\n %v",cnfe.getMessage)
         cnfe.printStackTrace()
-        con.close()
       case se: SQLException =>
         se.printStackTrace()
-        con.close()
     }
   }
 
-  def getKeysFromInvoiceDetails(con: Connection): Set[String] = {
+  def checkConnection(): Boolean = {
+    if(this.con == null){
+      logger.error("Connection to Teradata is not up!")
+      false
+    }else{
+      true
+    }
+  }
+
+
+  def close() = {
+    this.con.close()
+  }
+
+  def makeQuery(query: String, handleF: ResultSet => Any): Any = {
+    try {
+      val statement = this.con.createStatement()
+      val resultSet = statement.executeQuery(query)
+      val res = handleF(resultSet)
+      return res
+    } catch {
+      case e: Exception =>
+        e.printStackTrace()
+    }
+  }
+
+  def getKeysFromInvoiceDetails(): Set[String] = {
+    if(!checkConnection){
+      return null
+    }
+    val getKeysInvoicdeDetails = "HELP VIEW asis_ws_raas_tok_f2_view.v_invoicedetails;"
+    val res = makeQuery(getKeysInvoicdeDetails, handleGetKeysFromInvoiceDetails)
+    if (res.isInstanceOf[KeySet]) {
+      res.asInstanceOf[KeySet].value
+    }else{
+      Set()
+    }
+  }
+
+  def handleGetKeysFromInvoiceDetails(resultSet: ResultSet): KeySet = {
     var keys: Set[String] = Set()
-    try {
-      val statement = con.createStatement()
-      val resultSet = statement.executeQuery("HELP VIEW asis_ws_raas_tok_f2_view.v_invoicedetails;")
-      while (resultSet.next()){
-        keys = keys + resultSet.getString(1)
-      }
-      println("no results left")
-    }catch {
-      case e: Exception =>
-        e.printStackTrace()
-        con.close()
+    while (resultSet.next()) {
+      keys += resultSet.getString(1)
     }
-    keys
+    new KeySet(keys)
   }
 
-  def getLastAlteredTimestamp(con: Connection): Timestamp = {
+  def getLastAlteredTimestamp(): Timestamp = {
+    if(!checkConnection){
+      return null
+    }
+    val getLastAlteredTimestampFromTable = "SELECT createtimestamp, lastaltertimestamp FROM DBC.Tables WHERE Tablekind = 'V' AND databasename='asis_ws_raas_tok_f2_view' AND tablename='v_invoicedetails'"
+    val res = makeQuery(getLastAlteredTimestampFromTable, handleGetLastAlteredTimestamp)
+    if (res.isInstanceOf[Timestamp]) {
+      res.asInstanceOf[Timestamp]
+    }else{
+      null
+    }
+  }
+
+  def handleGetLastAlteredTimestamp(resultSet: ResultSet): Timestamp = {
     var lat: Timestamp = null
-    try {
-      val statement = con.createStatement()
-      val resultSet = statement.executeQuery("SELECT createtimestamp, lastaltertimestamp FROM DBC.Tables WHERE Tablekind = 'V' AND databasename='asis_ws_raas_tok_f2_view' AND tablename='v_invoicedetails'")
-      while (resultSet.next()){
-          if (resultSet.isLast) {
-            lat = resultSet.getTimestamp("lastaltertimestamp")
-             lat
-          }
+    while (resultSet.next()) {
+      if (resultSet.isLast) {
+        lat = resultSet.getTimestamp("lastaltertimestamp")
       }
-    }catch {
-      case e: Exception =>
-        e.printStackTrace()
-        con.close()
     }
     lat
   }
 
-  def printMetainfo(con: Connection, stringMatch: String) = {
-    try {
-      val statement = con.createStatement()
-      val resultSet = statement.executeQuery("SELECT tablename, databasename, createtimestamp, lastaltertimestamp FROM DBC.Tables WHERE Tablekind = 'V' AND tablename LIKE '%"+stringMatch+"%'")
-
-      while (resultSet.next()){
-        val tn = resultSet.getObject("tablename")
-        val dn = resultSet.getObject("databasename")
-        val lat = resultSet.getObject("lastaltertimestamp")
-        val ct = resultSet.getObject("createtimestamp")
-        println("tablename: "+tn+" dname: "+dn+" ct: "+ct+" lat: "+lat)
-      }
-      println("No Results left")
-    }catch {
-      case e: Exception =>
-        e.printStackTrace()
-        con.close()
+  def getTableAndDatabasenameAndTimestamp(): mutable.Map[String,mutable.Map[String,Any]] = {
+    if(!checkConnection){
+      return null
+    }
+    val getTableAndDatabasenameAndTimestamp = "SELECT tablename, databasename, createtimestamp, lastaltertimestamp FROM DBC.Tables WHERE Tablekind = 'V' AND tablename LIKE '%invoice%'"
+    val res = makeQuery(getTableAndDatabasenameAndTimestamp, handleGetTableAndDatabasenameAndTimestamp)
+    if (res.isInstanceOf[InfoMap]){
+      res.asInstanceOf[InfoMap].value
+    }else{
+      mutable.Map[String, mutable.Map[String, Any]]()
     }
   }
 
-  def selectQuery(con: Connection) = {
-    try {
-      val statement = con.createStatement()
-      val resultSet = statement.executeQuery("SELECT RSLVD_DTTM FROM asis_ws_raas_tok_f2_view.v_invoicedetails sample 10;")
-
-      while (resultSet.next()){
-        println(resultSet.getObject("RSLVD_DTTM"))
-      }
-      println("No Results left")
-    }catch {
-      case e: Exception =>
-        e.printStackTrace()
-        con.close()
+  def handleGetTableAndDatabasenameAndTimestamp(resultSet: ResultSet): InfoMap = {
+    var infoMap = new InfoMap(mutable.Map[String, mutable.Map[String, Any]]())
+    var innerMap = mutable.Map[String,Any]()
+    while (resultSet.next()) {
+      innerMap += ("tablename" -> resultSet.getString("tablename"))
+      innerMap += ("databasename" -> resultSet.getString("databasename"))
+      innerMap += ("lastaltertimestamp" -> resultSet.getTimestamp("lastaltertimestamp"))
+      innerMap += ("createtimestamp" -> resultSet.getTimestamp("createtimestamp"))
+       infoMap.value += (resultSet.getString("databasename") +"_"+resultSet.getString("tablename") -> innerMap)
     }
+    infoMap
   }
 }
