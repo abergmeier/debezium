@@ -2,6 +2,7 @@
 package teradata
 
 import akka.actor.Actor
+import akka.actor.ActorLogging
 import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.actor.Props
@@ -17,13 +18,13 @@ object TestActor {
     }
 }
 
-class TestActor(teradataActor: ActorRef) extends Actor with Matchers {
+class TestActor(teradataActor: ActorRef) extends Actor with Matchers with ActorLogging{
     def receive = {
         case TestActor.Test => {
             teradataActor ! ExecuteSQL("SELECT CURRENT_TIME")
         }
         case SQLStream(data) => {
-            data shouldBe (Iterable[Row](Row("Test1", "Test2"), Row("Test3", "Test4")))
+            log.info(data.getString(1))
         }
     }
 }

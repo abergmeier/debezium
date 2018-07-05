@@ -1,5 +1,7 @@
 
 package teradata
 
-case class SQLStream(data: Iterable[Row]) {
+import java.sql.ResultSet
+
+case class SQLStream(data: ResultSet) {
 }
