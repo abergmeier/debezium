@@ -13,6 +13,9 @@ object DataActor {
     case class Get(keys: Set[String]) {
     }
 
+    case class Data(data: Map[String, Row]) {
+    }
+
     case class Put(data: Map[String, Row]) {
     }
 }
@@ -25,7 +28,7 @@ class DataActor extends Actor with ActorLogging {
         case DataActor.Get(keys) => {
             log.info("Getting keys " + keys + "...")
             val requestedMap = dataMap.filterKeys(keys.contains(_))
-            sender() ! requestedMap
+            sender() ! DataActor.Data(requestedMap)
         }
         case DataActor.Put(data) => {
             log.info("Put data...")
