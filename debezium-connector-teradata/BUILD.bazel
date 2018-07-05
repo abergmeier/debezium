@@ -84,6 +84,16 @@ java_library(
 )
 
 scala_library(
+    name = "sqlstream",
+    srcs = [
+        "SQLStream.scala",
+    ],
+    deps = [
+        ":row",
+    ],
+)
+
+scala_library(
     name = "sourceinfo",
     srcs = [
         "SourceInfo.scala",
@@ -120,6 +130,7 @@ scala_library(
     deps = [
         "@com_typesafe_akka_akka_actor//jar",
         ":executesql",
+        ":sqlstream",
         ":row",
     ],
 )
@@ -134,6 +145,7 @@ scala_test(
         "@com_typesafe_config//jar",
         ":executesql",
         ":row",
+        ":sqlstream",
         ":teradataactor",
     ],
 )
