@@ -6,6 +6,13 @@ class TeradataConnectionTest extends FlatSpec{
 
   it should "make connection" in{
     val tc = new TeradataConnection
-    tc.makeConnection(<insertmehere>)
+    tc.startConnection(<jdbc>, <username>, <password>)
+    val res = tc.getKeysFromInvoiceDetails()
+    println(res)
+    tc.close()
   }
+
+
+
 }
+
