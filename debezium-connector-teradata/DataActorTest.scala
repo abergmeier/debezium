@@ -15,18 +15,18 @@ class DataActorSpec extends FlatSpec with Matchers {
 
     "A DataActor" should "be initially empty" in {
         val store = system.actorOf(Props[DataActor], "dataActorInitial")
-        val future = ask(store, DataActor.Get(Set[String]()))(1 second).mapTo[Map[String, Row]]
+        val future = ask(store, DataActor.Get(Set[String]()))(1 second).mapTo[DataActor.Data]
         val result = Await.result(future, 1 second)
-        result shouldBe empty
+        result.data shouldBe empty
     }
 
     "A DataActor" should "store rows" in {
         val store = system.actorOf(Props[DataActor], "dataActorStore")
         val data = Map[String, Row]("A" -> Row("Value5", "Value6"), "B" -> Row("Value2", "Value3"))
         store ! DataActor.Put(data)
-        val future = ask(store, DataActor.Get(Set[String]("A")))(1 second).mapTo[Map[String, Row]]
+        val future = ask(store, DataActor.Get(Set[String]("A")))(1 second).mapTo[DataActor.Data]
         var result = Await.result(future, 1 second)
-        result should equal (Map[String, Row]("A" -> Row("Value5", "Value6")))
+        result.data should equal (Map[String, Row]("A" -> Row("Value5", "Value6")))
     }
 
     "A DataActor" should "delete rows" in {
@@ -34,8 +34,8 @@ class DataActorSpec extends FlatSpec with Matchers {
         val data = Map[String, Row]("C" -> Row("Value9", "Value8"), "D" -> Row("Value1", "Value2"))
         store ! DataActor.Put(data)
         store ! DataActor.Delete(Set[String]("C"))
-        val future = ask(store, DataActor.Get(Set[String]("C")))(1 second).mapTo[Map[String, Row]]
+        val future = ask(store, DataActor.Get(Set[String]("C")))(1 second).mapTo[DataActor.Data]
         val result = Await.result(future, 1 second)
-        result shouldBe empty
+        result.data shouldBe empty
     }
 }
