@@ -84,6 +84,33 @@ java_library(
 )
 
 scala_library(
+    name = "snapshotactor",
+    srcs = [
+        "SnapshotActor.scala",
+    ],
+    deps = [
+        "@com_typesafe_akka_akka_actor//jar",
+        ":executesql",
+        ":sqlstream",
+        ":row",
+    ],
+)
+
+scala_test(
+    name = "snapshotactor_test",
+    srcs = [
+        "SnapshotActorTest.scala",
+    ],
+    deps = [
+        "@com_typesafe_akka_akka_actor//jar",
+        "@com_typesafe_config//jar",
+        ":executesql",
+        ":snapshotactor",
+        ":row",
+    ],
+)
+
+scala_library(
     name = "sqlstream",
     srcs = [
         "SQLStream.scala",
