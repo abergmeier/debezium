@@ -5,6 +5,10 @@ import java.sql.ResultSet
 import akka.actor.Actor
 import akka.actor.ActorLogging
 
+import com.sun.rowset.CachedRowSetImpl
+
+import java.sql.CachedRowSet
+
 class TeradataActor extends Actor with ActorLogging {
 
     def receive = {
@@ -12,11 +16,13 @@ class TeradataActor extends Actor with ActorLogging {
             log.info("Execute SQL on Teradata: " + sql)
             val tc = new TeradataConnection
             tc.startConnection()
-            val statement = tc.con.createStatement()
-            val resultSet = statement.executeQuery(sql.asInstanceOf[String])
-            sender() ! SQLStream(resultSet)
+            val crs = new CachedRowSetImpl()
+            crs.setType(CachedRowSet.TYPE_FORWARD_ONLY)
+            crs.setFetchDirection(CachedRowSet.FETCH_FORWARD)
+            crs.setCommand(sql)
+            crs.execute(tc)
+            sender() ! SQLStream(crs)
             tc.close()
-            //sender() ! SQLStream(Iterable[Row](Row("Test1", "Test2"), Row("Test3", "Test4")))
         }
     }
 
