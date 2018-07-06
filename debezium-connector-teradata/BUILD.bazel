@@ -180,11 +180,15 @@ scala_test(
     srcs = [
         "TeradataActorTest.scala",
     ],
+    data = [
+        "config.properties",
+    ],
     deps = [
         ":executesql",
         ":row",
         ":sqlstream",
         ":teradataactor",
+        ":teradataconnection",
         "@com_typesafe_akka_akka_actor//jar",
         "@com_typesafe_config//jar",
     ],

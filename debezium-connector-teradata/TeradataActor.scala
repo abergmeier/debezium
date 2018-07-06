@@ -11,19 +11,22 @@ import javax.sql.rowset.CachedRowSet
 
 class TeradataActor extends Actor with ActorLogging {
 
+    val teradataConnection = new TeradataConnection()
+
     def receive = {
+        case StartTeradataConnection(jdbcstring, teradataUser, teradataPassword) => {
+            teradataConnection.startConnection(jdbcstring,teradataUser,teradataPassword)
+        }
         case ExecuteSQL(sql) => {
             log.info("Execute SQL on Teradata: " + sql)
-            val tc = new TeradataConnection
-            tc.startConnection()
             val crs = new CachedRowSetImpl()
             //crs.setType(CachedRowSet.TYPE_FORWARD_ONLY)
             //crs.setFetchDirection(CachedRowSet.FETCH_FORWARD)
             crs.setCommand(sql)
-            crs.execute(tc.con)
+            crs.execute(teradataConnection.con)
             crs.next()
             sender() ! SQLStream(crs)
-            tc.close()
+            teradataConnection.close()
         }
     }
 }
