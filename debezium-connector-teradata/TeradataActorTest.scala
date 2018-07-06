@@ -8,10 +8,12 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.pattern.ask
 import scala.concurrent.duration._
-
 import org.scalatest._
 
+import scala.io.Source
+import scala.collection.mutable
 import scala.concurrent.Await
+import java.io.File
 
 object TestActor {
     object Test {
@@ -21,6 +23,13 @@ object TestActor {
 class TestActor(teradataActor: ActorRef) extends Actor with Matchers with ActorLogging{
     def receive = {
         case TestActor.Test => {
+            var m = mutable.Map[String,String]()
+            val filename = "debezium-connector-teradata/config.properties"
+            for (line <- Source.fromFile(filename).getLines){
+                val sa = line.split("=")
+                m += (sa(0) -> sa(1))
+            }
+            teradataActor ! StartTeradataConnection(m getOrElse("jdbcstring",""), m getOrElse("user",""), m getOrElse("password",""))
             teradataActor ! ExecuteSQL("SELECT TRIM(KTNR_NOA), CURRENT_TIMESTAMP FROM asis_ws_raas_tok_f2_view.v_invoicedetails ORDER BY TRIM(KTNR_NOA)")
         }
         case SQLStream(data) => {

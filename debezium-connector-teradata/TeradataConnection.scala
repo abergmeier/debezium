@@ -9,6 +9,9 @@ import scala.collection.mutable
 case class KeySet(value: Set[String])
 case class InfoMap(value: mutable.Map[String,mutable.Map[String,Any]])
 
+case class StartTeradataConnection(jdbcString: String, teradataUser: String, teradataPassword: String){
+}
+
 class TeradataConnection {
 
   val logger = LoggerFactory.getLogger(classOf[TeradataConnection]);
