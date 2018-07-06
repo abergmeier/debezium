@@ -33,9 +33,11 @@ class TestActor(teradataActor: ActorRef) extends Actor with Matchers with ActorL
             teradataActor ! ExecuteSQL("SELECT TRIM(KTNR_NOA), CURRENT_TIMESTAMP FROM asis_ws_raas_tok_f2_view.v_invoicedetails ORDER BY TRIM(KTNR_NOA)")
         }
         case SQLStream(data) => {
-            data.getTimestamp(2) should not be None
-            data.getString(1) shouldBe "102099267"
-            data.next()
+            val iterator = data.iterator
+            val row = iterator.next()
+            row.getTimestamp(2) should not be None
+            row.getString(1) shouldBe "102099267"
+            iterator.next()
             context.system.terminate()
         }
     }

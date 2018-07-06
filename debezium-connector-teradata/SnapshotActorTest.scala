@@ -7,7 +7,10 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.pattern.ask
 
+import io.debezium.connector.teradata.AbstractResultSet
+
 import java.time.Instant
+import java.sql.ResultSet
 
 import scala.concurrent.duration._
 
@@ -15,11 +18,14 @@ import org.scalatest._
 
 import scala.concurrent.Await
 
+class TestResultSet(value1: String, value2: String) extends AbstractResultSet {
+}
+
 class SourceActor extends Actor with ActorLogging {
     def receive = {
         case ExecuteSQL => {
             log.info("Answering with dummy...")
-            sender() ! Iterable[Row](Row("ABCD", "EFGH"), Row("IJKL", "MNOP"))
+            sender() ! Iterable[ResultSet](new TestResultSet("ABCD", "EFGH"), new TestResultSet("IJKL", "MNOP"))
         }
     }
 }
@@ -35,7 +41,7 @@ class TestActor(snapshotActor: ActorRef) extends Actor with ActorLogging with Ma
             snapshotActor ! SnapshotActor.TakeSnapshot
         }
         case SnapshotActor.SnapshotTaken(data, databaseTimestamp) => {
-            data shouldBe (Map[String, Row]("ABCD" -> Row("ABCD", "EFGH"), "IJKL" -> Row("IJKL", "MNOP")))
+            data shouldBe (Map[String, ResultSet]("ABCD" -> new TestResultSet("ABCD", "EFGH"), "IJKL" -> new TestResultSet("IJKL", "MNOP")))
             databaseTimestamp shouldBe Instant.EPOCH.getEpochSecond
         }
     }

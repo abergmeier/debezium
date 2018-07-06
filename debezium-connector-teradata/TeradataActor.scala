@@ -1,7 +1,6 @@
 
 package teradata
 
-import java.sql.ResultSet
 import akka.actor.Actor
 import akka.actor.ActorLogging
 
@@ -24,8 +23,7 @@ class TeradataActor extends Actor with ActorLogging {
             //crs.setFetchDirection(CachedRowSet.FETCH_FORWARD)
             crs.setCommand(sql)
             crs.execute(teradataConnection.con)
-            crs.next()
-            sender() ! SQLStream(crs)
+            sender() ! SQLStream(new RowIterable(crs))
             teradataConnection.close()
         }
     }
