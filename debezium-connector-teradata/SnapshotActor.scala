@@ -7,6 +7,7 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 
 import java.time.Instant
+import java.sql.ResultSet
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -16,24 +17,27 @@ object SnapshotActor {
     case class TakeSnapshot() {
     }
 
-    case class SnapshotTaken(data: Map[String, Row], databaseTimestamp: Long) {
+    case class SnapshotTaken(data: Map[String, ResultSet], databaseTimestamp: Long) {
     }
 }
 
 class SnapshotActor(teradataActor: ActorRef) extends Actor with ActorLogging {
 
-    private val databaseTimestamp = Instant.EPOCH.getEpochSecond
     private val snapshotReceipients = new Queue[ActorRef]()
 
     def receive = {
         case SnapshotActor.TakeSnapshot => {
             log.info("Taking a snapshot of the DB...")
             snapshotReceipients.enqueue(sender())
-            teradataActor ! ExecuteSQL("SELECT CURRENT_TIME FROM MEVIEW")
+            teradataActor ! ExecuteSQL("SELECT TRIM(KTNR_NOA), CURRENT_TIMESTAMP FROM asis_ws_raas_tok_f2_view.v_invoicedetails ORDER BY TRIM(KTNR_NOA)")
         }
-        case SQLStream(results) => {
+        case SQLStream(data) => {
             val receipient = snapshotReceipients.dequeue()
-            val resultMap = results.map{row: Row => (row.field1, row)}.toMap
+            var databaseTimestamp: Long = 0
+            val resultMap = data.map{row: ResultSet => {
+                databaseTimestamp = row.getTimestamp(2).getTime()
+                (row.getString(1), row)
+            }}.toMap
             receipient ! SnapshotActor.SnapshotTaken(resultMap, databaseTimestamp)
         }
     }

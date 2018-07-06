@@ -1,5 +1,12 @@
 load("@io_bazel_rules_scala//scala:scala.bzl", "scala_library", "scala_test")
 
+java_library(
+    name = "abstractresultset",
+    srcs = [
+        "src/main/java/io/debezium/connector/teradata/AbstractResultSet.java",
+    ],
+)
+
 scala_library(
     name = "config",
     srcs = [
@@ -19,7 +26,7 @@ scala_library(
         "DataActor.scala",
     ],
     deps = [
-        ":row",
+        ":rowiterable",
         "@com_typesafe_akka_akka_actor//jar",
     ],
 )
@@ -30,8 +37,9 @@ scala_test(
         "DataActorTest.scala",
     ],
     deps = [
+        ":abstractresultset",
         ":dataactor",
-        ":row",
+        ":rowiterable",
         "@com_typesafe_akka_akka_actor//jar",
         "@com_typesafe_config//jar",
     ],
@@ -74,9 +82,9 @@ test_suite(
 )
 
 scala_library(
-    name = "row",
+    name = "rowiterable",
     srcs = [
-        "Row.scala",
+        "RowIterable.scala",
     ],
 )
 
@@ -97,7 +105,7 @@ scala_library(
     ],
     deps = [
         ":executesql",
-        ":row",
+        ":rowiterable",
         ":sqlstream",
         "@com_typesafe_akka_akka_actor//jar",
     ],
@@ -109,8 +117,9 @@ scala_test(
         "SnapshotActorTest.scala",
     ],
     deps = [
+        ":abstractresultset",
         ":executesql",
-        ":row",
+        ":rowiterable",
         ":snapshotactor",
         "@com_typesafe_akka_akka_actor//jar",
         "@com_typesafe_config//jar",
@@ -121,9 +130,6 @@ scala_library(
     name = "sqlstream",
     srcs = [
         "SQLStream.scala",
-    ],
-    deps = [
-        ":row",
     ],
 )
 
@@ -163,7 +169,7 @@ scala_library(
     ],
     deps = [
         ":executesql",
-        ":row",
+        ":rowiterable",
         ":sqlstream",
         ":teradataconnection",
         "@com_typesafe_akka_akka_actor//jar",
@@ -192,7 +198,7 @@ scala_test(
     ],
     deps = [
         ":executesql",
-        ":row",
+        ":rowiterable",
         ":sqlstream",
         ":teradataactor",
         ":teradataconnection",
