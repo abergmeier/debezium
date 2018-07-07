@@ -28,7 +28,7 @@ before_install:
   - curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
   - sudo apt-get update
   - sudo apt-get install bazel
-  - touch debezium-connector-mysql-teradata/config.properties
+  - touch debezium-connector-teradata/config.properties
 
 # By default Travis will install dependencies before it runs a build, and with Maven projects that
 # means running an install build without tests. We don't need to do this, and it actually causes problems.
