@@ -23,6 +23,10 @@ before_install:
   - export M2_HOME=$PWD/apache-maven-3.3.9
   - export PATH=$M2_HOME/bin:$PATH
   - mvn -version
+  - echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+  - curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
+  - sudo apt-get update
+  - sudo apt-get install bazel
 
 # By default Travis will install dependencies before it runs a build, and with Maven projects that
 # means running an install build without tests. We don't need to do this, and it actually causes problems.
@@ -33,10 +37,7 @@ after_install:
   - docker ps -a
 
 script: 
-  - mvn clean install -Passembly -Dversion.postgres.server=9.6-devel
-  - mvn install -pl debezium-connector-mysql -Pparser-antlr -DskipTests
-  - mvn install -pl debezium-connector-postgres -Pwal2json-decoder -Dversion.postgres.server=9.6-devel
-  - mvn install -pl debezium-connector-mongodb -Dversion.mongo.server=3.2.19
+  - bazel build //...
 
 notifications:
   webhooks:
