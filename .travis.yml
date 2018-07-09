@@ -38,7 +38,7 @@ after_install:
   - docker ps -a
 
 script:
-  - bazel test //... --test_output=all
+  - bazel test //debezium-connector-teradata:no_connection_tests --test_output=all
 
 notifications:
   webhooks:
