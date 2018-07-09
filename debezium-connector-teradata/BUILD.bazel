@@ -208,8 +208,12 @@ scala_test(
     srcs = [
         "TeradataConnectionTest.scala",
     ],
+    data = [
+        "config.properties",
+    ],
     deps = [
         ":teradata-jdbc",
         ":teradataconnection",
+        "@org_slf4j_slf4j_api//jar",
     ],
 )
