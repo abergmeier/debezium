@@ -38,7 +38,8 @@ install: true
 after_install:
   - docker ps -a
 
-script: 
+script:
+  - whoami
   - bazel test //... --test_output=all
 
 notifications:
