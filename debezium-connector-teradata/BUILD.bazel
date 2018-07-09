@@ -66,6 +66,13 @@ scala_library(
     ],
 )
 
+test_suite(
+    name = "no_connection_tests",
+    tags = [
+        "-teradata_connection",
+    ],
+)
+
 scala_library(
     name = "row",
     srcs = [
@@ -192,6 +199,9 @@ scala_test(
         "@com_typesafe_akka_akka_actor//jar",
         "@com_typesafe_config//jar",
     ],
+    tags = [
+        "teradata_connection",
+    ],
 )
 
 java_import(
@@ -215,5 +225,8 @@ scala_test(
         ":teradata-jdbc",
         ":teradataconnection",
         "@org_slf4j_slf4j_api//jar",
+    ],
+    tags = [
+        "teradata_connection",
     ],
 )
