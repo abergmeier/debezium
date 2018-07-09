@@ -2,7 +2,6 @@ language: java
 cache:
   directories:
   - $HOME/.m2/repository
-  - $HOME/.cache/bazel
 
 sudo: required
 
@@ -39,8 +38,6 @@ after_install:
   - docker ps -a
 
 script:
-  - whoami
-  - ls -lah /home/travis/.cache/bazel/_bazel_travis
   - bazel test //... --test_output=all
 
 notifications:
