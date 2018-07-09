@@ -40,6 +40,7 @@ after_install:
 
 script:
   - whoami
+  - ls -lah /home/travis/.cache/bazel/_bazel_travis
   - bazel test //... --test_output=all
 
 notifications:
