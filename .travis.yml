@@ -2,6 +2,7 @@ language: java
 cache:
   directories:
   - $HOME/.m2/repository
+  - $HOME/.bazel-output-base
 
 sudo: required
 
@@ -28,6 +29,7 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install bazel
   - touch debezium-connector-teradata/config.properties
+  - echo "startup --output_base=${HOME}/.bazel-output-base" >>~/.bazelrc
 
 # By default Travis will install dependencies before it runs a build, and with Maven projects that
 # means running an install build without tests. We don't need to do this, and it actually causes problems.
@@ -39,6 +41,9 @@ after_install:
 
 script:
   - bazel test //debezium-connector-teradata:no_connection_tests --test_output=all --keep_going
+
+after_script:
+  - bazel shutdown
 
 notifications:
   webhooks:
