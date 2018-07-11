@@ -40,6 +40,7 @@ after_install:
   - docker ps -a
 
 script:
+  - bazel test //debezium-akka/... --test_output=all --keep_going
   - bazel test //debezium-connector-teradata:no_connection_tests --test_output=all --keep_going
 
 after_script:
