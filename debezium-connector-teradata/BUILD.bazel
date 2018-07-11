@@ -1,12 +1,5 @@
 load("@io_bazel_rules_scala//scala:scala.bzl", "scala_library", "scala_test")
 
-java_library(
-    name = "abstractresultset",
-    srcs = [
-        "src/main/java/io/debezium/connector/teradata/AbstractResultSet.java",
-    ],
-)
-
 scala_library(
     name = "config",
     srcs = [
@@ -17,31 +10,6 @@ scala_library(
         "//debezium-core",
         "@org_apache_kafka_connect_api//jar",
         "@org_apache_kafka_kafka_clients//jar",
-    ],
-)
-
-scala_library(
-    name = "dataactor",
-    srcs = [
-        "DataActor.scala",
-    ],
-    deps = [
-        ":rowiterable",
-        "@com_typesafe_akka_akka_actor//jar",
-    ],
-)
-
-scala_test(
-    name = "dataactor_test",
-    srcs = [
-        "DataActorTest.scala",
-    ],
-    deps = [
-        ":abstractresultset",
-        ":dataactor",
-        ":rowiterable",
-        "@com_typesafe_akka_akka_actor//jar",
-        "@com_typesafe_config//jar",
     ],
 )
 
@@ -81,13 +49,6 @@ test_suite(
     ],
 )
 
-scala_library(
-    name = "rowiterable",
-    srcs = [
-        "RowIterable.scala",
-    ],
-)
-
 java_library(
     name = "secureconnectionmode",
     srcs = [
@@ -105,7 +66,7 @@ scala_library(
     ],
     deps = [
         ":executesql",
-        ":rowiterable",
+        "//debezium-akka:rowiterable",
         ":sqlstream",
         "@com_typesafe_akka_akka_actor//jar",
     ],
@@ -117,9 +78,9 @@ scala_test(
         "SnapshotActorTest.scala",
     ],
     deps = [
-        ":abstractresultset",
+        "//debezium-akka:abstractresultset",
         ":executesql",
-        ":rowiterable",
+        "//debezium-akka:rowiterable",
         ":snapshotactor",
         "@com_typesafe_akka_akka_actor//jar",
         "@com_typesafe_config//jar",
@@ -169,7 +130,7 @@ scala_library(
     ],
     deps = [
         ":executesql",
-        ":rowiterable",
+        "//debezium-akka:rowiterable",
         ":sqlstream",
         ":teradataconnection",
         "@com_typesafe_akka_akka_actor//jar",
@@ -198,7 +159,7 @@ scala_test(
     ],
     deps = [
         ":executesql",
-        ":rowiterable",
+        "//debezium-akka:rowiterable",
         ":sqlstream",
         ":teradataactor",
         ":teradataconnection",
