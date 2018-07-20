@@ -6,6 +6,8 @@ import akka.actor.ActorLogging
 import akka.actor.ActorRef
 import akka.pattern.ask
 
+import debezium.Row
+
 import java.time.Instant
 import java.sql.ResultSet
 
@@ -17,7 +19,7 @@ object SnapshotActor {
     case class TakeSnapshot() {
     }
 
-    case class SnapshotTaken(data: Map[String, ResultSet], databaseTimestamp: Long) {
+    case class SnapshotTaken(data: Map[Any, Row], databaseTimestamp: Long) {
     }
 }
 
@@ -34,10 +36,9 @@ class SnapshotActor(teradataActor: ActorRef) extends Actor with ActorLogging {
         case SQLStream(data) => {
             val receipient = snapshotReceipients.dequeue()
             var databaseTimestamp: Long = 0
-            val resultMap = data.map{row: ResultSet => {
-                databaseTimestamp = row.getTimestamp(2).getTime()
-                (row.getString(1), row)
-            }}.toMap
+            val resultMap = ResultSetStream(data)
+                .map{row: Row => (row.get(1), row)}
+                .toMap
             receipient ! SnapshotActor.SnapshotTaken(resultMap, databaseTimestamp)
         }
     }

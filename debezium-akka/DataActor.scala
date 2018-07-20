@@ -1,36 +1,34 @@
 
-package teradata
+package debezium
 
 import akka.actor.Actor
 import akka.actor.ActorLogging
 
-import java.sql.ResultSet
-
 import scala.concurrent.duration._
 
 object DataActor {
-    case class Delete(keys: Set[String]) {
+    case class Delete(keys: Set[Any]) {
     }
 
-    case class Get(keys: Set[String]) {
+    case class Get(keys: Set[Any]) {
     }
 
-    case class Data(data: Map[String, ResultSet]) {
+    case class Put(data: Map[Any, Row]) {
     }
 
-    case class Put(data: Map[String, ResultSet]) {
+    case class DataResponse(data: Map[Any, Row]) {
     }
 }
 
 class DataActor extends Actor with ActorLogging {
 
-    private var dataMap = Map[String, ResultSet]()
+    private var dataMap = Map[Any, Row]()
 
     def receive = {
         case DataActor.Get(keys) => {
-            log.info("Getting keys " + keys + "...")
+            log.info("Getting by keys " + keys + "...")
             val requestedMap = dataMap.filterKeys(keys.contains(_))
-            sender() ! DataActor.Data(requestedMap)
+            sender() ! DataActor.DataResponse(requestedMap)
         }
         case DataActor.Put(data) => {
             log.info("Put data...")

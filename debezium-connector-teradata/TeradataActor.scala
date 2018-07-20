@@ -23,7 +23,7 @@ class TeradataActor extends Actor with ActorLogging {
             //crs.setFetchDirection(CachedRowSet.FETCH_FORWARD)
             crs.setCommand(sql)
             crs.execute(teradataConnection.con)
-            sender() ! SQLStream(new RowIterable(crs))
+            sender() ! SQLStream(crs)
             teradataConnection.close()
         }
     }
