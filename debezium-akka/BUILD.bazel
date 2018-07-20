@@ -1,21 +1,13 @@
 
 load("@io_bazel_rules_scala//scala:scala.bzl", "scala_library", "scala_test")
 
-java_library(
-    name = "abstractresultset",
-    srcs = [
-        "src/main/java/io/debezium/connector/teradata/AbstractResultSet.java",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 scala_library(
     name = "dataactor",
     srcs = [
         "DataActor.scala",
     ],
     deps = [
-        ":rowiterable",
+        ":rows",
         "@com_typesafe_akka_akka_actor//jar",
     ],
 )
@@ -26,18 +18,20 @@ scala_test(
         "DataActorTest.scala",
     ],
     deps = [
-        ":abstractresultset",
         ":dataactor",
-        ":rowiterable",
+        ":rows",
         "@com_typesafe_akka_akka_actor//jar",
         "@com_typesafe_config//jar",
     ],
 )
 
 scala_library(
-    name = "rowiterable",
+    name = "rows",
     srcs = [
-        "RowIterable.scala",
+        "Rows.scala",
+    ],
+    deps = [
+        "//debezium-core",
     ],
     visibility = ["//visibility:public"],
 )

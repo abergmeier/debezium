@@ -32,12 +32,11 @@ class TestActor(teradataActor: ActorRef) extends Actor with Matchers with ActorL
             teradataActor ! StartTeradataConnection(m getOrElse("jdbcstring",""), m getOrElse("user",""), m getOrElse("password",""))
             teradataActor ! ExecuteSQL("SELECT TRIM(KTNR_NOA), CURRENT_TIMESTAMP FROM asis_ws_raas_tok_f2_view.v_invoicedetails ORDER BY TRIM(KTNR_NOA)")
         }
-        case SQLStream(data) => {
-            val iterator = data.iterator
-            val row = iterator.next()
-            row.getTimestamp(2) should not be None
-            row.getString(1) shouldBe "102099267"
-            iterator.next()
+        case SQLStream(resultSet) => {
+            resultSet.next()
+            resultSet.getTimestamp(2) should not be None
+            resultSet.getString(1) shouldBe "102099267"
+            resultSet.next()
             context.system.terminate()
         }
     }

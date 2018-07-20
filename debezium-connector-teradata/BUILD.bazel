@@ -1,5 +1,13 @@
 load("@io_bazel_rules_scala//scala:scala.bzl", "scala_library", "scala_test")
 
+java_library(
+    name = "abstractresultset",
+    srcs = [
+        "src/main/java/io/debezium/connector/teradata/AbstractResultSet.java",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 scala_library(
     name = "config",
     srcs = [
@@ -29,9 +37,67 @@ scala_library(
 )
 
 scala_library(
+    name = "debeziumvalue",
+    srcs = [
+        "DebeziumValue.scala",
+    ],
+    deps = [
+        "//debezium-core",
+    ],
+)
+
+scala_library(
     name = "executesql",
     srcs = [
         "ExecuteSQL.scala",
+    ],
+)
+
+scala_library(
+    name = "resultsetstream",
+    srcs = [
+        "ResultSetStream.scala",
+    ],
+    deps = [
+        ":resultsetvalue",
+        "//debezium-akka:rows",
+        "//debezium-core",
+    ],
+)
+
+scala_test(
+    name = "resultsetstream_test",
+    srcs = [
+        "ResultSetStreamTest.scala",
+    ],
+    deps = [
+        ":abstractresultset",
+        ":resultsetstream",
+        ":resultsetvalue",
+        "//debezium-akka:rows",
+    ],
+)
+
+scala_library(
+    name = "resultsetvalue",
+    srcs = [
+        "ResultSetValue.scala",
+    ],
+    deps = [
+        ":debeziumvalue",
+        ":sqlvalue",
+        "//debezium-core",
+    ],
+)
+
+scala_test(
+    name = "resultsetvalue_test",
+    srcs = [
+        "ResultSetValueTest.scala",
+    ],
+    deps = [
+        ":abstractresultset",
+        ":resultsetvalue",
     ],
 )
 
@@ -65,8 +131,10 @@ scala_library(
         "SnapshotActor.scala",
     ],
     deps = [
+        "//debezium-akka:rows",
         ":executesql",
-        "//debezium-akka:rowiterable",
+        ":resultsetstream",
+        ":resultsetvalue",
         ":sqlstream",
         "@com_typesafe_akka_akka_actor//jar",
     ],
@@ -78,9 +146,9 @@ scala_test(
         "SnapshotActorTest.scala",
     ],
     deps = [
-        "//debezium-akka:abstractresultset",
+        "//debezium-akka:rows",
+        ":abstractresultset",
         ":executesql",
-        "//debezium-akka:rowiterable",
         ":snapshotactor",
         "@com_typesafe_akka_akka_actor//jar",
         "@com_typesafe_config//jar",
@@ -91,6 +159,13 @@ scala_library(
     name = "sqlstream",
     srcs = [
         "SQLStream.scala",
+    ],
+)
+
+scala_library(
+    name = "sqlvalue",
+    srcs = [
+        "SQLValue.scala",
     ],
 )
 
@@ -130,7 +205,6 @@ scala_library(
     ],
     deps = [
         ":executesql",
-        "//debezium-akka:rowiterable",
         ":sqlstream",
         ":teradataconnection",
         "@com_typesafe_akka_akka_actor//jar",
@@ -159,7 +233,6 @@ scala_test(
     ],
     deps = [
         ":executesql",
-        "//debezium-akka:rowiterable",
         ":sqlstream",
         ":teradataactor",
         ":teradataconnection",
