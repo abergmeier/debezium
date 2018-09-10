@@ -1,9 +1,9 @@
 
-rules_scala_version="63eab9f4d80612e918ba954211f377cc83d27a07" # update this as needed
+rules_scala_version="a89d44f7ef67d93dedfc9888630f48d7723516f7" # update this as needed
 
 http_archive(
     name = "io_bazel_rules_scala",
-    url = "https://github.com/bazelbuild/rules_scala/archive/%s.zip" % rules_scala_version,
+    url = "https://github.com/bazelbuild/rules_scala/archive/%s.zip"%rules_scala_version,
     type = "zip",
     strip_prefix= "rules_scala-%s" % rules_scala_version
 )
