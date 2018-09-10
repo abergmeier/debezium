@@ -1,0 +1,36 @@
+load("@io_bazel_rules_scala//scala:scala.bzl", "scala_library", "scala_test")
+
+scala_library(
+    name = "logingraph",
+    srcs = [
+        "LoginGraph.scala",
+    ],
+    deps = [
+        "//exasol:command",
+        "@com_typesafe_akka_akka_actor//jar",
+        "@com_typesafe_akka_akka_http_core//jar",
+        "@com_typesafe_akka_akka_stream//jar",
+        "@com_typesafe_akka_parsing//jar",
+        "@net_liftweb_lift_json//jar",
+    ],
+)
+
+scala_test(
+    name = "logingraph_test",
+    srcs = [
+        "LoginGraphTest.scala",
+    ],
+    deps = [
+        "//exasol:command",
+        ":logingraph",
+        "@com_thoughtworks_paranamer_paranamer//jar",
+        "@com_typesafe_config//jar",
+        "@com_typesafe_akka_akka_actor//jar",
+        "@com_typesafe_akka_akka_http_core//jar",
+        "@com_typesafe_akka_akka_stream//jar",
+        "@com_typesafe_ssl_config_core//jar",
+        "@org_reactivestreams_reactive_streams//jar",
+        "@org_scala_lang_modules_scala_parser_combinators//jar",
+    ],
+    tags = ["local"],
+)

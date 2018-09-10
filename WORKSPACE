@@ -42,8 +42,38 @@ maven_jar(
 )
 
 maven_jar(
+    name = "com_thoughtworks_paranamer_paranamer",
+    artifact = "com.thoughtworks.paranamer:paranamer:2.8",
+    server = "maven_uk_server",
+)
+
+maven_jar(
     name = "com_typesafe_akka_akka_actor",
     artifact = "com.typesafe.akka:akka-actor_2.11:2.5.13",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "com_typesafe_akka_akka_http_core",
+    artifact = "com.typesafe.akka:akka-http-core_2.11:10.1.4",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "com_typesafe_scala_logging",
+    artifact = "com.typesafe.scala-logging:scala-logging_2.11:3.9.0",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "com_typesafe_akka_parsing",
+    artifact = "com.typesafe.akka:akka-parsing_2.11:10.1.4",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "com_typesafe_akka_akka_stream",
+    artifact = "com.typesafe.akka:akka-stream_2.11:2.5.13",
     server = "maven_uk_server",
 )
 
@@ -53,9 +83,21 @@ maven_jar(
     server = "maven_uk_server",
 )
 
+maven_jar(
+    name = "com_typesafe_ssl_config_core",
+    artifact = "com.typesafe:ssl-config-core_2.11:0.2.4",
+    server = "maven_uk_server",
+)
+
 maven_server(
     name = "maven_uk_server",
     url = "http://uk.maven.org/maven2",
+)
+
+maven_jar(
+    name = "net_liftweb_lift_json",
+    artifact = "net.liftweb:lift-json_2.11:3.3.0",
+    server = "maven_uk_server",
 )
 
 maven_jar(
@@ -85,6 +127,18 @@ maven_jar(
 maven_jar(
     name = "org_easytesting_fest_util",
     artifact = "org.easytesting:fest-util:1.2.5",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "org_reactivestreams_reactive_streams",
+    artifact = "org.reactivestreams:reactive-streams:1.0.2",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "org_scala_lang_modules_scala_parser_combinators",
+    artifact = "org.scala-lang.modules:scala-parser-combinators_2.11:1.1.1",
     server = "maven_uk_server",
 )
 

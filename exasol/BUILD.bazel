@@ -1,0 +1,15 @@
+
+load("@io_bazel_rules_scala//scala:scala.bzl", "scala_library", "scala_test")
+
+scala_library(
+    name = "command",
+    srcs = [
+        "ExasolCommand.scala",
+    ],
+    deps = [
+        "@com_typesafe_akka_akka_http_core//jar",
+        "@com_typesafe_akka_akka_stream//jar",
+        "@net_liftweb_lift_json//jar",
+    ],
+    visibility = ["//visibility:public"],
+)
