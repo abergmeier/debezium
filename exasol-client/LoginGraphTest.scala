@@ -3,6 +3,7 @@ package exasol
 
 import akka.NotUsed
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import akka.stream.ActorMaterializerSettings
 import akka.stream.ClosedShape
@@ -31,23 +32,45 @@ class LoginGraphSpec extends FlatSpec with Matchers {
     }
     val materializerSettings = ActorMaterializerSettings(system).withSupervisionStrategy(terminateDecider)
     implicit val materializer = ActorMaterializer(materializerSettings)
+    val userData = LoginCommand.UserData("sys", "exasol", true, None, Some(classOf[LoginGraphSpec].toString()))
+    val http = Http(system)
 
-    val resultSink = TestSink.probe[LoginCommand.SessionData]
+    "A LoginGraph" should "handle announce" in {
 
-    val g = RunnableGraph.fromGraph(GraphDSL.create(resultSink) { implicit builder => sink =>
+        val resultSink = Sink.head[LoginCommand.Response]
 
-        val loginData = Future {
-            LoginCommand.UserData("dummyuser", "dummypass", true, None, Some(classOf[LoginGraphSpec].toString()))
-        }(ExecutionContext.global)
+        val a = RunnableGraph.fromGraph(GraphDSL.create(resultSink) { implicit builder => sink =>
 
-        val login = Login.graph(system, loginData, "ws://heise.de")
+            val loginData = Future {
+                userData
+            }(ExecutionContext.global)
+            val announce = Login.announceGraph(http, "ws://192.168.56.2:8563")
 
-        import GraphDSL.Implicits._
-        login ~> sink.in
-        ClosedShape
-    })
+            import GraphDSL.Implicits._
+            announce ~> sink.in
+            ClosedShape
+        })
+
+        val session = a.run()
+        Await.result(session, 1000.millis) should not be (null)
+    }
 
     "A LoginGraph" should "be runnable" in {
+
+        val resultSink = TestSink.probe[LoginCommand.SessionData]
+
+        val g = RunnableGraph.fromGraph(GraphDSL.create(resultSink) { implicit builder => sink =>
+
+            val loginData = Future {
+                userData
+            }(ExecutionContext.global)
+            val login = Login.graph(http, loginData, "ws://192.168.56.2:8563")
+
+            import GraphDSL.Implicits._
+            login ~> sink.in
+            ClosedShape
+        })
+
         val session = g.run()
         session.requestNext(LoginCommand.SessionData(0, 1, "2", "db", "w", 59, 546, 45, "q", "TZ", "TZB")).expectComplete()
     }
