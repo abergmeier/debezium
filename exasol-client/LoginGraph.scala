@@ -22,18 +22,19 @@ object Login {
 
     def announceGraph(http: HttpExt, socketUrl: String) =
         Source.fromGraph(GraphDSL.create() { implicit builder: GraphDSL.Builder[NotUsed] =>
-            val loginMessage = Flow[LoginCommand].map(data => {
-                TextMessage(data.toJsonString())
-            }).named("Converting Login to Message")
-            val exasolAnnounce = http.webSocketClientFlow(WebSocketRequest(socketUrl)).named("ExasolAnnounceLogin")
+            val exasolAnnounce = http
+                .webSocketClientFlow(WebSocketRequest(socketUrl))
+                    .named("ExasolAnnounceLogin")
+                    .log("SendAnnounce")
 
             val announceResponse = builder.add(Flow[Message].map(data =>
                 LoginCommand.Response.extract(data)
-            ).named("Building Response"))
+            ).named("Building Response").log("AnnouncementResponse"))
+            val loginMessage = TextMessage((new LoginCommand).toJsonString())
 
             import GraphDSL.Implicits._
 
-            Source.single(new LoginCommand) ~> loginMessage ~> exasolAnnounce ~> announceResponse
+            Source.single(loginMessage) ~> exasolAnnounce ~> announceResponse
 
             SourceShape(announceResponse.out)
         })
@@ -46,7 +47,11 @@ object Login {
                 .named("LoginData")
 
             val fanIn = builder.add(Zip[LoginCommand.Response, LoginCommand.UserData].named("LoginDataCollector"))
-            val exasolLogin = http.webSocketClientFlow(WebSocketRequest(socketUrl)).named("ExasolLogin")
+            val exasolLogin = http
+                .webSocketClientFlow(WebSocketRequest(socketUrl))
+                    .named("ExasolLogin")
+                    .log("UserLogin")
+
             val encryptLoginData = Flow[(LoginCommand.Response, LoginCommand.UserData)].map(data =>
                 data._2
             ).named("Encrypting login data")

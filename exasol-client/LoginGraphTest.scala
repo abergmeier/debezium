@@ -25,8 +25,7 @@ class LoginGraphSpec extends FlatSpec with Matchers {
     implicit val system = ActorSystem("TestSystem")
     val terminateDecider: Supervision.Decider = {
         case e: Exception =>
-            system.log.info("About to fail")
-            fail("Unhandled exception in stream" + e)
+            fail("Deciding to terminate due to: " + e)
             Supervision.Stop
         case _ => Supervision.Stop
     }
@@ -51,8 +50,8 @@ class LoginGraphSpec extends FlatSpec with Matchers {
             ClosedShape
         })
 
-        val session = a.run()
-        Await.result(session, 1000.millis) should not be (null)
+        val cryptData = a.run()
+        Await.result(cryptData, 1000.millis) should not be (null)
     }
 
     "A LoginGraph" should "be runnable" in {

@@ -3,8 +3,8 @@ package exasol
 
 
 import akka.http.scaladsl.model.ws._
-import net.liftweb.json._
-
+import org.json4s.{DefaultFormats, Formats}
+import org.json4s.jackson.JsonMethods
 
 abstract class Command(val command: String, val jsonFormat: String) {
 	def toJsonString(): String
@@ -46,14 +46,14 @@ object LoginCommand {
 
 	object SessionData {
 		def extract[T](data: T): SessionData = data match {
-			case tm: TextMessage.Strict => {
-				implicit val formats = DefaultFormats
-				val json = parse(tm.text)
+			case TextMessage.Strict(text) => {
+				implicit val formats = DefaultFormats.withStrictArrayExtraction
+				val json = JsonMethods.parse(text)
 				val answer = json.extract[ResponseOrError[SessionData]]
 				ResponseOrError.throwFoundError(answer)
 				answer.responseData.get
 			}
-		case _ => throw new RuntimeException("Extract of SessionData with wrong type")
+		case _ => throw new IllegalArgumentException("Extract of SessionData with wrong type")
 		}
 	}
 
@@ -72,14 +72,14 @@ object LoginCommand {
 	
 	object Response {
 		def extract[T](data: T): Response = data match {
-			case tm: TextMessage.Strict => {
-				implicit val formats = DefaultFormats
-				val json = parse(tm.text)
+			case TextMessage.Strict(text) => {
+				implicit val formats = DefaultFormats.withStrictArrayExtraction
+				val json = JsonMethods.parse(text)
 				val answer = json.extract[ResponseOrError[Response]]
 				ResponseOrError.throwFoundError(answer)
 				answer.responseData.get
 			}
-			case _ => throw new RuntimeException("Extract of Response with wrong type")
+			case _ => throw new IllegalArgumentException("Extract of Response with wrong type")
 		}
 	}
 

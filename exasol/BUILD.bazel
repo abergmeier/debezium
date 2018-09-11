@@ -7,9 +7,12 @@ scala_library(
         "ExasolCommand.scala",
     ],
     deps = [
+        "@com_fasterxml_jackson_core_jackson_core//jar",
         "@com_typesafe_akka_akka_http_core//jar",
         "@com_typesafe_akka_akka_stream//jar",
-        "@net_liftweb_lift_json//jar",
+        "@org_json4s_json4s_ast//jar",
+        "@org_json4s_json4s_core//jar",
+        "@org_json4s_json4s_jackson//jar",
     ],
     visibility = ["//visibility:public"],
 )

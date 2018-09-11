@@ -30,8 +30,20 @@ java_import(
 )
 
 maven_jar(
+    name = "com_fasterxml_jackson_core_jackson_annotations",
+    artifact = "com.fasterxml.jackson.core:jackson-annotations:2.9.6",
+    server = "maven_uk_server",
+)
+
+maven_jar(
     name = "com_fasterxml_jackson_core_jackson_core",
     artifact = "com.fasterxml.jackson.core:jackson-core:2.9.6",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "com_fasterxml_jackson_core_jackson_databind",
+    artifact = "com.fasterxml.jackson.core:jackson-databind:2.9.6",
     server = "maven_uk_server",
 )
 
@@ -106,11 +118,6 @@ maven_server(
     url = "http://uk.maven.org/maven2",
 )
 
-maven_jar(
-    name = "net_liftweb_lift_json",
-    artifact = "net.liftweb:lift-json_2.11:3.3.0",
-    server = "maven_uk_server",
-)
 
 maven_jar(
     name = "org_apache_kafka_connect_api",
@@ -139,6 +146,30 @@ maven_jar(
 maven_jar(
     name = "org_easytesting_fest_util",
     artifact = "org.easytesting:fest-util:1.2.5",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "org_json4s_json4s_ast",
+    artifact = "org.json4s:json4s-ast_2.11:3.6.1",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "org_json4s_json4s_core",
+    artifact = "org.json4s:json4s-core_2.11:3.6.1",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "org_json4s_json4s_jackson",
+    artifact = "org.json4s:json4s-jackson_2.11:3.6.1",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "org_json4s_json4s_scalap",
+    artifact = "org.json4s:json4s-scalap_2.11:3.6.1",
     server = "maven_uk_server",
 )
 
