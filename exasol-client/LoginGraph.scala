@@ -47,7 +47,7 @@ object Login {
             }
             ).log("Converting Login to Message")
             val session = builder.add(Flow[Message].map(data =>
-                LoginCommand.SessionData(0, 1, "2", "db", "w", 59, 546, 45, "q", "TZ", "TZB")
+                LoginCommand.SessionData.extract(data)
             ).named("ExasolSession"))
 
             import GraphDSL.Implicits._

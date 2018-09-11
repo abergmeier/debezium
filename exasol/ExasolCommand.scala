@@ -44,6 +44,19 @@ object LoginCommand {
 	case class UserData(username: String, password: String, useCompression: Boolean, sessionId: Option[Long], clientName: Option[String]) extends Product with Serializable {
 	}
 
+	object SessionData {
+		def extract[T](data: T): SessionData = data match {
+			case tm: TextMessage.Strict => {
+				implicit val formats = DefaultFormats
+				val json = parse(tm.text)
+				val answer = json.extract[ResponseOrError[SessionData]]
+				ResponseOrError.throwFoundError(answer)
+				answer.responseData.get
+			}
+		case _ => throw new RuntimeException("Extract of SessionData with wrong type")
+		}
+	}
+
 	case class SessionData(
 		sessionId: Long,
 		protocolVersion: Int,
@@ -63,16 +76,10 @@ object LoginCommand {
 				implicit val formats = DefaultFormats
 				val json = parse(tm.text)
 				val answer = json.extract[ResponseOrError[Response]]
-				throwFoundError(answer)
+				ResponseOrError.throwFoundError(answer)
 				answer.responseData.get
 			}
-			case _ => throw new RuntimeException("")
-		}
-
-		def throwFoundError[T](answer: ResponseOrError[T]) = {
-			answer.status match {
-				case "error" => throw answer.exception.get
-			}
+			case _ => throw new RuntimeException("Extract of Response with wrong type")
 		}
 	}
 
@@ -89,6 +96,14 @@ case class LoginCommand() extends Command(LoginCommand.commandName, "{\"command\
 }
 
 case class Error(text: String, sqlCode: String) extends Exception {
+}
+
+object ResponseOrError {
+	def throwFoundError[T](answer: ResponseOrError[T]) = {
+		answer.status match {
+			case "error" => throw answer.exception.get
+		}
+	}
 }
 
 case class ResponseOrError[R](status: String, responseData: Option[R], exception: Option[Error]) {

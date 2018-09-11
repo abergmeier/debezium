@@ -78,6 +78,18 @@ maven_jar(
 )
 
 maven_jar(
+    name = "com_typesafe_akka_akka_stream_testkit",
+    artifact = "com.typesafe.akka:akka-stream-testkit_2.11:2.5.16",
+    server = "maven_uk_server",
+)
+
+maven_jar(
+    name = "com_typesafe_akka_akka_testkit",
+    artifact = "com.typesafe.akka:akka-testkit_2.11:2.5.9",
+    server = "maven_uk_server",
+)
+
+maven_jar(
     name = "com_typesafe_config",
     artifact = "com.typesafe:config:1.3.3",
     server = "maven_uk_server",

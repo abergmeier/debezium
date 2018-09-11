@@ -10,6 +10,7 @@ import akka.stream.scaladsl.GraphDSL
 import akka.stream.scaladsl.RunnableGraph
 import akka.stream.scaladsl.Sink
 import akka.stream.Supervision
+import akka.stream.testkit.scaladsl.TestSink
 
 import org.scalatest._
 import scala.concurrent.duration._
@@ -31,7 +32,7 @@ class LoginGraphSpec extends FlatSpec with Matchers {
     val materializerSettings = ActorMaterializerSettings(system).withSupervisionStrategy(terminateDecider)
     implicit val materializer = ActorMaterializer(materializerSettings)
 
-    val resultSink = Sink.head[LoginCommand.SessionData]
+    val resultSink = TestSink.probe[LoginCommand.SessionData]
 
     val g = RunnableGraph.fromGraph(GraphDSL.create(resultSink) { implicit builder => sink =>
 
@@ -48,6 +49,6 @@ class LoginGraphSpec extends FlatSpec with Matchers {
 
     "A LoginGraph" should "be runnable" in {
         val session = g.run()
-        Await.result(session, 1000.millis) should not be (null)
+        session.requestNext(LoginCommand.SessionData(0, 1, "2", "db", "w", 59, 546, 45, "q", "TZ", "TZB")).expectComplete()
     }
 }
