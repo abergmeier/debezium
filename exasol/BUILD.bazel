@@ -16,3 +16,19 @@ scala_library(
     ],
     visibility = ["//visibility:public"],
 )
+
+scala_test(
+    name = "command_test",
+    srcs = [
+        "ExasolCommandTest.scala",
+    ],
+    deps = [
+        ":command",
+        "@com_fasterxml_jackson_core_jackson_annotations//jar",
+        "@com_fasterxml_jackson_core_jackson_core//jar",
+        "@com_fasterxml_jackson_core_jackson_databind//jar",
+        "@org_json4s_json4s_ast//jar",
+        "@org_json4s_json4s_core//jar",
+        "@org_json4s_json4s_jackson//jar",
+    ],
+)

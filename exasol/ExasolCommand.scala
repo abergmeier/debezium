@@ -40,8 +40,7 @@ case class GetHosts() extends Command(GetHosts.commandName, "{\"command\": \"%s\
 object LoginCommand {
 	val commandName = "login"
 
-	@SerialVersionUID(223L)
-	case class UserData(username: String, password: String, useCompression: Boolean, sessionId: Option[Long], clientName: Option[String]) extends Product with Serializable {
+	case class UserData(username: String, password: String, useCompression: Boolean, sessionId: Option[Long], clientName: Option[String]) {
 	}
 
 	object SessionData {
