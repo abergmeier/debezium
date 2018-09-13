@@ -27,8 +27,10 @@ scala_test(
         "@com_fasterxml_jackson_core_jackson_annotations//jar",
         "@com_fasterxml_jackson_core_jackson_core//jar",
         "@com_fasterxml_jackson_core_jackson_databind//jar",
+        "@com_thoughtworks_paranamer_paranamer//jar",
         "@org_json4s_json4s_ast//jar",
         "@org_json4s_json4s_core//jar",
         "@org_json4s_json4s_jackson//jar",
+        "@org_json4s_json4s_scalap//jar"
     ],
 )

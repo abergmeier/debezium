@@ -3,44 +3,51 @@ package exasol
 
 
 import akka.http.scaladsl.model.ws._
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.{DefaultFormats, FieldSerializer, Formats}
 import org.json4s.jackson.JsonMethods
+import org.json4s.jackson.Serialization
 
-abstract class Command(val command: String, val jsonFormat: String) {
-	def toJsonString(): String
+object Command {
+	def toJson[C <: Command](c: C)(implicit mc: scala.reflect.Manifest[C]): String = {
+		val formats = DefaultFormats + FieldSerializer[C]()
+		Serialization.write(c)(formats)
+	}
+}
+
+abstract class Command(val command: String) {
 }
 
 object AbortQuery {
 	val commandName = "abortQuery"
 }
 
-case class AbortQuery() extends Command(AbortQuery.commandName, "{\"command\": \"%s\"}") {
-	override def toJsonString(): String =
-		jsonFormat.format(command)
+case class AbortQuery() extends Command(AbortQuery.commandName) {
 }
 
 object ClosePreparedStatement {
 	val commandName = "closePreparedStatement"
 }
 
-case class ClosePreparedStatement() extends Command(ClosePreparedStatement.commandName, "{\"command\": \"%s\"}") {
-	override def toJsonString(): String =
-		jsonFormat.format(command)
+case class ClosePreparedStatement() extends Command(ClosePreparedStatement.commandName) {
 }
 
 object GetHosts {
 	val commandName = "getHosts"
 }
 
-case class GetHosts() extends Command(GetHosts.commandName, "{\"command\": \"%s\"}") {
-	override def toJsonString(): String =
-		jsonFormat.format(command)
+case class GetHosts() extends Command(GetHosts.commandName) {
 }
 
 object LoginCommand {
 	val commandName = "login"
 
-	case class UserData(username: String, password: String, useCompression: Boolean, sessionId: Option[Long], clientName: Option[String]) {
+	case class UserData(
+		username: String,
+		password: String,
+		useCompression: Boolean,
+		sessionId: Option[Long],
+		clientName: Option[String]
+	) {
 	}
 
 	object SessionData {
@@ -86,12 +93,8 @@ object LoginCommand {
 	}
 }
 
-@SerialVersionUID(123L)
-case class LoginCommand() extends Command(LoginCommand.commandName, "{\"command\": \"%s\", \"protocolVersion\": %s}") with Serializable {
+case class LoginCommand() extends Command(LoginCommand.commandName) {
 	val protocolVersion = 1
-
-	override def toJsonString(): String =
-		jsonFormat.format(command, protocolVersion)
 }
 
 case class Error(text: String, sqlCode: String) extends Exception {

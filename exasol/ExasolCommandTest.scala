@@ -1,11 +1,8 @@
 package exasol
 
-import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
-
 import org.json4s.jackson.Serialization
-
-import org.json4s.jackson.JsonMethods
-import org.json4s._
+import org.json4s.DefaultFormats
+import org.json4s.FieldSerializer
 
 import org.scalatest._
 
@@ -17,8 +14,6 @@ import scala.util.Failure
 
 class ExasolCommandSpec extends FlatSpec with Matchers {
 
-	val mapper = new ObjectMapper
-
 	"UserData" should "properly serialize to JSON" in {
 		val userData = LoginCommand.UserData(
 			"username",
@@ -28,8 +23,13 @@ class ExasolCommandSpec extends FlatSpec with Matchers {
 			Some("client")
 		)
 		val formats = DefaultFormats
-		val json = Serialization.write(userData, formats)
-		json shouldBe raw"""{"username": "username", "password": "password", "useCompression": false, "sessionId": 4, "clientName": "client"}"""
+		val json = Serialization.write(userData)(formats)
+		json shouldBe raw"""{"username":"username","password":"password","useCompression":false,"sessionId":4,"clientName":"client"}"""
+	}
+
+	"LoginCommand" should "poperly serialize" in {
+		val json = Command.toJson(new LoginCommand)
+		json shouldBe raw"""{"protocolVersion":1,"command":"login"}"""
 	}
 /*
 	"UserData" should "have same values after serialization cycle" in {
