@@ -7,10 +7,17 @@ scala_library(
     ],
     deps = [
         "//exasol:command",
+        "@com_fasterxml_jackson_core_jackson_annotations//jar",
+        "@com_fasterxml_jackson_core_jackson_core//jar",
+        "@com_fasterxml_jackson_core_jackson_databind//jar",
         "@com_typesafe_akka_akka_actor//jar",
         "@com_typesafe_akka_akka_http_core//jar",
         "@com_typesafe_akka_akka_stream//jar",
         "@com_typesafe_akka_parsing//jar",
+        "@org_json4s_json4s_ast//jar",
+        "@org_json4s_json4s_core//jar",
+        "@org_json4s_json4s_jackson//jar",
+        "@org_json4s_json4s_scalap//jar",
     ],
 )
 
@@ -20,6 +27,7 @@ scala_test(
         "LoginGraphTest.scala",
     ],
     data = [
+        "exasol.conf",
         "test.conf",
     ],
     jvm_flags = [

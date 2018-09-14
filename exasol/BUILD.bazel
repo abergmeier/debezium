@@ -1,10 +1,21 @@
 
 load("@io_bazel_rules_scala//scala:scala.bzl", "scala_library", "scala_test")
 
+py_binary(
+    name = "encrypter",
+    srcs = [
+        "encrypt.py",
+    ],
+    main = "encrypt.py",
+)
+
 scala_library(
     name = "command",
     srcs = [
         "ExasolCommand.scala",
+    ],
+    data = [
+        ":encrypter",
     ],
     deps = [
         "@com_fasterxml_jackson_core_jackson_core//jar",
@@ -31,6 +42,6 @@ scala_test(
         "@org_json4s_json4s_ast//jar",
         "@org_json4s_json4s_core//jar",
         "@org_json4s_json4s_jackson//jar",
-        "@org_json4s_json4s_scalap//jar"
+        "@org_json4s_json4s_scalap//jar",
     ],
 )

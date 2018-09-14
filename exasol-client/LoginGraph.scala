@@ -16,6 +16,8 @@ import akka.stream.scaladsl.GraphDSL
 import akka.stream.scaladsl.Sink
 import akka.stream.scaladsl.Source
 import akka.stream.scaladsl.Zip
+import org.json4s.jackson.Serialization
+import org.json4s.DefaultFormats
 import scala.concurrent.Future
 
 object Login {
@@ -30,7 +32,7 @@ object Login {
             val announceResponse = builder.add(Flow[Message].map(data =>
                 LoginCommand.Response.extract(data)
             ).named("Building Response").log("AnnouncementResponse"))
-            val loginMessage = TextMessage((new LoginCommand).toJsonString())
+            val loginMessage = TextMessage(Command.toJson(new LoginCommand))
 
             import GraphDSL.Implicits._
 
@@ -52,16 +54,31 @@ object Login {
                     .named("ExasolLogin")
                     .log("UserLogin")
 
-            val encryptLoginData = Flow[(LoginCommand.Response, LoginCommand.UserData)].map(data =>
-                data._2
-            ).named("Encrypting login data")
-            val loginDataMessage = Flow[LoginCommand.UserData].map(data =>
-                TextMessage("bar")
-            ).named("Converting UserData to Message")
+            val encryptLoginData = Flow[(LoginCommand.Response, LoginCommand.UserData)]
+                .map(data =>
+                    data._2.encrypt(
+                        data._1.publicKeyPem,
+                        data._1.publicKeyModulus,
+                        data._1.publicKeyExponent
+                    )
+                )
+                .named("Encrypting login data")
+                .log("UserPasswordEncrypt")
 
-            val session = builder.add(Flow[Message].map(data =>
-                LoginCommand.SessionData.extract(data)
-            ).named("ExasolSession"))
+            val loginDataMessage = Flow[LoginCommand.UserData]
+                .map(userData =>
+                    TextMessage(Serialization.write(userData)(DefaultFormats))
+                )
+                .named("Converting UserData to Message")
+                .log("UserLoginSerialization")
+
+            val session = builder.add(Flow[Message]
+                .map(data =>
+                    LoginCommand.SessionData.extract(data)
+                )
+                .named("ExasolSession")
+                .log("ExtractSessionData")
+            )
 
             import GraphDSL.Implicits._
 

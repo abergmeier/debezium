@@ -13,6 +13,11 @@ import akka.stream.scaladsl.Sink
 import akka.stream.Supervision
 import akka.stream.testkit.scaladsl.TestSink
 
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigParseOptions
+
+import java.io.File
+
 import org.scalatest._
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -31,8 +36,17 @@ class LoginGraphSpec extends FlatSpec with Matchers {
     }
     val materializerSettings = ActorMaterializerSettings(system).withSupervisionStrategy(terminateDecider)
     implicit val materializer = ActorMaterializer(materializerSettings)
-    val userData = LoginCommand.UserData("sys", "exasol", true, None, Some(classOf[LoginGraphSpec].toString()))
     val http = Http(system)
+
+    val configOptions = ConfigParseOptions.defaults()
+        .setAllowMissing(false)
+    val configFile = new File("exasol-client/exasol.conf")
+    val exasolConfig = ConfigFactory.parseFile(configFile, configOptions)
+    val exasolServer = exasolConfig.getString("exasol.server")
+    val userData = LoginCommand.UserData(
+        exasolConfig.getString("exasol.username"),
+        exasolConfig.getString("exasol.password"),
+        true, None)
 
     "A LoginGraph" should "handle announce" in {
 
@@ -40,10 +54,7 @@ class LoginGraphSpec extends FlatSpec with Matchers {
 
         val a = RunnableGraph.fromGraph(GraphDSL.create(resultSink) { implicit builder => sink =>
 
-            val loginData = Future {
-                userData
-            }(ExecutionContext.global)
-            val announce = Login.announceGraph(http, "ws://192.168.56.2:8563")
+            val announce = Login.announceGraph(http, exasolServer)
 
             import GraphDSL.Implicits._
             announce ~> sink.in
@@ -51,7 +62,7 @@ class LoginGraphSpec extends FlatSpec with Matchers {
         })
 
         val cryptData = a.run()
-        Await.result(cryptData, 1000.millis) should not be (null)
+        Await.result(cryptData, 10000.millis) should not be (null)
     }
 
     "A LoginGraph" should "be runnable" in {
@@ -63,7 +74,7 @@ class LoginGraphSpec extends FlatSpec with Matchers {
             val loginData = Future {
                 userData
             }(ExecutionContext.global)
-            val login = Login.graph(http, loginData, "ws://192.168.56.2:8563")
+            val login = Login.graph(http, loginData, exasolServer)
 
             import GraphDSL.Implicits._
             login ~> sink.in

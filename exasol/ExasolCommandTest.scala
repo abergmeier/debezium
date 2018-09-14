@@ -21,8 +21,7 @@ class ExasolCommandSpec extends FlatSpec with Matchers {
 			Some(4),
 			Some("client")
 		)
-		val formats = DefaultFormats
-		val json = Serialization.write(userData)(formats)
+		val json = Serialization.write(userData)(DefaultFormats)
 		json shouldBe raw"""{"username":"username","password":"password","useCompression":false,"sessionId":4,"clientName":"client"}"""
 	}
 
@@ -30,20 +29,4 @@ class ExasolCommandSpec extends FlatSpec with Matchers {
 		val json = Command.toJson(new LoginCommand)
 		json shouldBe raw"""{"protocolVersion":1,"command":"login"}"""
 	}
-/*
-	"UserData" should "have same values after serialization cycle" in {
-		val former = LoginCommand.UserData(
-			"username",
-			"password",
-			false,
-			Some(4),
-			Some("client")
-		)
-
-		val jsonString = Serialization.write(userData, DefaultFormats)
-		val json = JsonMethods.parse(jsonString)
-		val latter = json.extract[LoginCommand.UserData]
-		former shouldBe equal latter
-	}
-*/
 }

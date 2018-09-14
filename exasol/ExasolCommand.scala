@@ -3,9 +3,25 @@ package exasol
 
 
 import akka.http.scaladsl.model.ws._
-import org.json4s.{DefaultFormats, FieldSerializer, Formats}
+
+import javax.crypto.Cipher
+import java.math.BigInteger
+import java.nio.charset.StandardCharsets
+import java.security.spec.RSAPublicKeySpec
+import java.security.Key
+import java.security.KeyFactory
+import java.security.PublicKey
+import java.security.Security
+import java.util.Base64
+
+import org.bouncycastle.util.io.pem.PemReader
+import org.json4s.DefaultFormats
+import org.json4s.Formats
+import org.json4s.FieldSerializer
 import org.json4s.jackson.JsonMethods
 import org.json4s.jackson.Serialization
+
+import sys.process._
 
 object Command {
 	def toJson[C <: Command](c: C)(implicit mc: scala.reflect.Manifest[C]): String = {
@@ -39,6 +55,8 @@ case class GetHosts() extends Command(GetHosts.commandName) {
 }
 
 object LoginCommand {
+	Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+	val keyFactory = KeyFactory.getInstance("RSA");
 	val commandName = "login"
 
 	case class UserData(
@@ -46,8 +64,15 @@ object LoginCommand {
 		password: String,
 		useCompression: Boolean,
 		sessionId: Option[Long],
-		clientName: Option[String]
+		clientName: String = "Scala EXASOL Websocket",
+		driverName: String = "Akka Http",
+		clientRuntime: String = "Scala " + util.Properties.versionString,
+		clientVersion: String = "0.0.1"
 	) {
+		def encrypt(pemKey: String, modulus: String, exponent: String): UserData = {
+			val encryptedPassword: String = Seq("exasol/encrypter", pemKey, password).!!
+			UserData(username, encryptedPassword, useCompression, sessionId)
+		}
 	}
 
 	object SessionData {
@@ -59,7 +84,7 @@ object LoginCommand {
 				ResponseOrError.throwFoundError(answer)
 				answer.responseData.get
 			}
-		case _ => throw new IllegalArgumentException("Extract of SessionData with wrong type")
+			case _ => throw new IllegalArgumentException("Extract of SessionData with wrong type")
 		}
 	}
 
@@ -104,6 +129,7 @@ object ResponseOrError {
 	def throwFoundError[T](answer: ResponseOrError[T]) = {
 		answer.status match {
 			case "error" => throw answer.exception.get
+			case "ok" => // Nothing to throw
 		}
 	}
 }
