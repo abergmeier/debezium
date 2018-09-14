@@ -2,7 +2,6 @@ package exasol
 
 import org.json4s.jackson.Serialization
 import org.json4s.DefaultFormats
-import org.json4s.FieldSerializer
 
 import org.scalatest._
 
@@ -14,7 +13,7 @@ import scala.util.Failure
 
 class ExasolCommandSpec extends FlatSpec with Matchers {
 
-	"UserData" should "properly serialize to JSON" in {
+	"UserData" should "serialize to JSON" in {
 		val userData = LoginCommand.UserData(
 			"username",
 			"password",
@@ -27,7 +26,7 @@ class ExasolCommandSpec extends FlatSpec with Matchers {
 		json shouldBe raw"""{"username":"username","password":"password","useCompression":false,"sessionId":4,"clientName":"client"}"""
 	}
 
-	"LoginCommand" should "poperly serialize" in {
+	"LoginCommand" should "serialize" in {
 		val json = Command.toJson(new LoginCommand)
 		json shouldBe raw"""{"protocolVersion":1,"command":"login"}"""
 	}
